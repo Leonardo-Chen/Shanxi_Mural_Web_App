@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background-color: #d8d0c2;
+  color: #26241f;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mapPulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.45;
+  }
+  70% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+@keyframes mapRegionBobSoft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes mapRegionBobStrong {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.map-pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mapPulse 2.4s ease-out infinite;
+}
+
+/* 防止画布卡片内图片被浏览器原生拖走 */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.map-region-bob {
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.map-region-bob--soft {
+  animation: mapRegionBobSoft 2.6s ease-in-out infinite;
+}
+
+.map-region-bob--strong {
+  animation: mapRegionBobStrong 2.2s ease-in-out infinite;
+}
+
+.map-idle-paused .map-region-bob {
+  animation: none;
+  transform: translateY(0);
+  transition: transform 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .map-pulse-ring {
+    animation: none !important;
+  }
+
+  .map-region-bob,
+  .map-region-bob--soft,
+  .map-region-bob--strong {
+    animation: none !important;
+    transform: none !important;
+  }
+}
