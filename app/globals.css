@@ -110,6 +110,28 @@ img {
   transition: transform 0.35s ease;
 }
 
+/* 填色游戏页允许滚动（结果页） */
+.coloring-page {
+  min-height: 100vh;
+}
+
+.coloring-page--scroll {
+  height: auto;
+  overflow: visible;
+}
+
+html:has(.coloring-root),
+body:has(.coloring-root) {
+  overflow: auto;
+  height: auto;
+  min-height: 100%;
+}
+
+.coloring-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -30,7 +30,15 @@ const LABEL_OFFSET: Record<
   gongzhu: { dx: -14, dy: -16, anchor: "end" },
   yanshan: { dx: 14, dy: -14, anchor: "start" },
   foguang: { dx: 14, dy: 18, anchor: "start" },
+  duofu: { dx: -12, dy: -14, anchor: "end" },
+  longquan: { dx: 12, dy: 16, anchor: "start" },
+  buer: { dx: 14, dy: -12, anchor: "start" },
+  huayan: { dx: -14, dy: -14, anchor: "end" },
+  shanhua: { dx: 14, dy: 14, anchor: "start" },
+  chongfu: { dx: -14, dy: -14, anchor: "end" },
+  sandaiwang: { dx: 14, dy: -14, anchor: "start" },
   yongning: { dx: 0, dy: -16, anchor: "middle" },
+  yonglegong: { dx: 0, dy: 16, anchor: "middle" },
   shuishen: { dx: 0, dy: -16, anchor: "middle" },
 };
 
@@ -125,6 +133,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     originY: number;
     moved: boolean;
   } | null>(null);
+  const gestureMovedRef = useRef(false);
 
   const activePrefecture =
     (hoveredTempleId ? templePrefecture[hoveredTempleId] : null) ??
@@ -170,7 +179,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/data/shanxi.geojson")
+    fetch("/data/shanxi.geojson", { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error("failed to load geojson");
         return r.json();
@@ -303,9 +312,8 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<SVGSVGElement>) => {
       if (e.button !== 0) return;
-      const target = e.target as Element;
-      if (target.closest("[data-map-interactive]")) return;
 
+      gestureMovedRef.current = false;
       panRef.current = {
         pointerId: e.pointerId,
         startX: e.clientX,
@@ -327,7 +335,10 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
       const dx = e.clientX - pan.startX;
       const dy = e.clientY - pan.startY;
-      if (!pan.moved && Math.hypot(dx, dy) > 4) pan.moved = true;
+      if (!pan.moved && Math.hypot(dx, dy) > 4) {
+        pan.moved = true;
+        gestureMovedRef.current = true;
+      }
 
       const svg = svgRef.current;
       if (!svg) return;
@@ -363,7 +374,10 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
   const handleSelect = useCallback(
     (templeId: string) => {
-      if (panRef.current?.moved) return;
+      if (gestureMovedRef.current) {
+        gestureMovedRef.current = false;
+        return;
+      }
       setPressedId(templeId);
       setHoveredTempleId(templeId);
       if (selectTimerRef.current !== null) {
@@ -391,15 +405,6 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
   return (
     <div className="fixed inset-0 z-10">
-      <div className="pointer-events-none absolute left-0 right-0 top-20 z-20 px-4 text-center md:top-24">
-        <h2 id={titleId} className="font-serif text-xl text-ink md:text-2xl">
-          山西寺观地图
-        </h2>
-        <p className="mt-2 font-serif text-sm text-ink/65">
-          悬停地市或标记查看寺庙 · 滚轮缩放 · 拖动平移
-        </p>
-      </div>
-
       {loadError && (
         <p className="absolute inset-0 z-10 flex items-center justify-center font-sans text-sm text-ink/50">
           地图加载失败，请刷新重试
@@ -637,16 +642,26 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
         </svg>
       )}
 
-      <div className="pointer-events-auto absolute bottom-6 left-5 z-20 flex flex-col gap-1 md:bottom-8 md:left-6">
-        <ZoomButton label="放大" onClick={() => zoomByButton(1)}>
-          +
-        </ZoomButton>
-        <ZoomButton label="缩小" onClick={() => zoomByButton(-1)}>
-          −
-        </ZoomButton>
-        <ZoomButton label="重置视图" onClick={resetView}>
-          ⌂
-        </ZoomButton>
+      <div className="pointer-events-none absolute bottom-6 left-5 z-20 flex items-end gap-3 md:bottom-8 md:left-6 md:gap-4">
+        <div className="pointer-events-auto flex flex-col gap-1">
+          <ZoomButton label="放大" onClick={() => zoomByButton(1)}>
+            +
+          </ZoomButton>
+          <ZoomButton label="缩小" onClick={() => zoomByButton(-1)}>
+            −
+          </ZoomButton>
+          <ZoomButton label="重置视图" onClick={resetView}>
+            ⌂
+          </ZoomButton>
+        </div>
+        <div className="max-w-[13rem] pb-0.5 sm:max-w-xs">
+          <h2 id={titleId} className="font-serif text-base text-ink md:text-lg">
+            山西寺观地图
+          </h2>
+          <p className="mt-1 font-serif text-[11px] leading-snug text-ink/65 md:text-xs">
+            悬停地市或标记查看寺庙 · 滚轮缩放 · 拖动平移
+          </p>
+        </div>
       </div>
 
       <aside

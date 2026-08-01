@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { NavSection } from "./NavPanel";
 
 interface FixedNavigationProps {
@@ -50,6 +51,14 @@ export default function FixedNavigation({
         aria-label="主导航"
       >
         <ul className="pointer-events-auto flex gap-4 md:gap-6">
+          <li>
+            <Link
+              href="/interactive"
+              className="font-sans text-[11px] tracking-wide text-ink/60 transition-colors hover:text-ink focus:outline-none focus-visible:underline md:text-xs"
+            >
+              互动读画
+            </Link>
+          </li>
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
             return (

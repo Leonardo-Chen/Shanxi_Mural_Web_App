@@ -10,13 +10,22 @@ export function getMapTemples(): Temple[] {
 
 /**
  * 寺庙所属地级市（与 geojson.cn 山西 140000 市级要素 name 对齐）
- * 繁峙、五台属忻州；稷山属运城；洪洞属临汾
  */
 export const templePrefecture: Record<string, string> = {
   gongzhu: "忻州",
   yanshan: "忻州",
   foguang: "忻州",
+  duofu: "太原",
+  buer: "太原",
+  longquan: "太原",
+  huayan: "大同",
+  shanhua: "大同",
+  yongan: "大同",
+  chongfu: "朔州",
+  sandaiwang: "朔州",
+  yunlin: "晋中",
   yongning: "运城",
+  yonglegong: "运城",
   shuishen: "临汾",
 };
 
