@@ -122,7 +122,6 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
   const [isPanning, setIsPanning] = useState(false);
 
   const selectTimerRef = useRef<number | null>(null);
-  const clearHoverTimerRef = useRef<number | null>(null);
   const transformRef = useRef(transform);
   transformRef.current = transform;
   const panRef = useRef<{
@@ -151,28 +150,10 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     return [];
   }, [hoveredTempleId, hoveredPrefecture]);
 
-  const cancelClearHover = useCallback(() => {
-    if (clearHoverTimerRef.current !== null) {
-      window.clearTimeout(clearHoverTimerRef.current);
-      clearHoverTimerRef.current = null;
-    }
-  }, []);
-
-  const scheduleClearHover = useCallback(() => {
-    cancelClearHover();
-    clearHoverTimerRef.current = window.setTimeout(() => {
-      setHoveredTempleId(null);
-      setHoveredPrefecture(null);
-    }, 240);
-  }, [cancelClearHover]);
-
   useEffect(() => {
     return () => {
       if (selectTimerRef.current !== null) {
         window.clearTimeout(selectTimerRef.current);
-      }
-      if (clearHoverTimerRef.current !== null) {
-        window.clearTimeout(clearHoverTimerRef.current);
       }
     };
   }, []);
@@ -372,6 +353,18 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     setTransform({ x: 0, y: 0, k: 1 });
   }, []);
 
+  const handleSvgClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (gestureMovedRef.current) {
+      gestureMovedRef.current = false;
+      return;
+    }
+    const target = e.target as HTMLElement | SVGElement;
+    if (!target.closest("[data-map-interactive]")) {
+      setHoveredPrefecture(null);
+      setHoveredTempleId(null);
+    }
+  }, []);
+
   const handleSelect = useCallback(
     (templeId: string) => {
       if (gestureMovedRef.current) {
@@ -431,6 +424,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
           onPointerMove={handlePointerMove}
           onPointerUp={endPan}
           onPointerCancel={endPan}
+          onClick={handleSvgClick}
         >
           <g transform={mapTransform}>
             <defs>
@@ -517,11 +511,19 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                         }
                         onMouseEnter={() => {
                           if (!city.hasTemple) return;
-                          cancelClearHover();
                           setHoveredPrefecture(city.name);
                           setHoveredTempleId(null);
                         }}
-                        onMouseLeave={scheduleClearHover}
+                        onClick={(e) => {
+                          if (!city.hasTemple) return;
+                          e.stopPropagation();
+                          if (gestureMovedRef.current) {
+                            gestureMovedRef.current = false;
+                            return;
+                          }
+                          setHoveredPrefecture(city.name);
+                          setHoveredTempleId(null);
+                        }}
                         style={{
                           transition: reducedMotion
                             ? "none"
@@ -574,11 +576,9 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                     className="cursor-pointer outline-none"
                     opacity={dimmed ? 0.28 : 1}
                     onMouseEnter={() => {
-                      cancelClearHover();
                       setHoveredTempleId(m.id);
                       setHoveredPrefecture(null);
                     }}
-                    onMouseLeave={scheduleClearHover}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelect(m.id);
@@ -670,8 +670,6 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
         }`}
         aria-live="polite"
         aria-label="悬停寺庙信息"
-        onMouseEnter={cancelClearHover}
-        onMouseLeave={scheduleClearHover}
       >
         <div
           className={`rounded-sm border border-ink/10 bg-rice/90 p-3 shadow-sm backdrop-blur-sm transition-all duration-300 ${

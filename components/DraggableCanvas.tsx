@@ -21,6 +21,7 @@ interface DraggableCanvasProps {
   isMobile?: boolean;
   /** 仅展示与这些寺庙相关的连接线；单寺时通常为空 */
   activeTempleIds?: string[] | null;
+  hasDraggedRef: React.RefObject<boolean>;
 }
 
 export default function DraggableCanvas({
@@ -37,6 +38,7 @@ export default function DraggableCanvas({
   parallaxOffset,
   isMobile = false,
   activeTempleIds = null,
+  hasDraggedRef,
 }: DraggableCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const anchors = useMemo(() => scaleAnchors(isMobile), [isMobile]);
@@ -75,13 +77,21 @@ export default function DraggableCanvas({
     <div
       {...bind()}
       ref={canvasRef}
+      onClickCapture={(e) => {
+        if (hasDraggedRef.current) {
+          e.stopPropagation();
+          e.preventDefault();
+          hasDraggedRef.current = false;
+        }
+      }}
       className={`fixed inset-0 z-10 touch-none overflow-hidden ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
       style={{ touchAction: "none" }}
     >
       <div
-        className="absolute will-change-transform"
+        className="absolute will-change-transform grid"
+        id="grid"
         style={{
           width: canvasWidth,
           height: canvasHeight,

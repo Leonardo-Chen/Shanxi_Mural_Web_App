@@ -10,7 +10,7 @@ import DetailOverlay, { type DetailContent } from "./DetailOverlay";
 import FixedNavigation from "./FixedNavigation";
 import NavPanel, { type NavSection } from "./NavPanel";
 import DragIndicator from "./DragIndicator";
-import MiniMap, { MobilePositionIndicator } from "./MiniMap";
+import { MobilePositionIndicator } from "./MiniMap";
 import { muralCards, muralCardMap, type MuralCardData } from "@/data/muralCards";
 import { templeMap } from "@/data/temples";
 import { canvasLayout } from "@/data/canvasLayout";
@@ -102,6 +102,7 @@ export default function MuralHomepage() {
     viewportSize,
     bind,
     navigateTo,
+    hasDraggedRef,
   } = useDraggableCanvas({
     canvasWidth: canvasSize.width,
     canvasHeight: canvasSize.height,
@@ -415,6 +416,7 @@ export default function MuralHomepage() {
             parallaxOffset={parallaxOffset}
             isMobile={isMobile}
             activeTempleIds={activeTempleIds}
+            hasDraggedRef={hasDraggedRef}
           />
 
           <button
@@ -427,17 +429,6 @@ export default function MuralHomepage() {
           </button>
 
           <DragIndicator visible={!detailContent && !navSection} />
-
-          {!isMobile && (
-            <MiniMap
-              canvasWidth={canvasSize.width}
-              canvasHeight={canvasSize.height}
-              viewportWidth={viewportSize.width}
-              viewportHeight={viewportSize.height}
-              position={position}
-              onNavigate={handleMinimapNavigate}
-            />
-          )}
 
           {isMobile && (
             <MobilePositionIndicator
