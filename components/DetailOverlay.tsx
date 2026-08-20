@@ -149,12 +149,6 @@ export default function DetailOverlay({
       ? temple!.description
       : content.story!.description;
 
-  const keywords = isElement
-    ? [locCoverCategory(locale, content.element!.category), content.element!.id]
-    : isTemple
-      ? temple!.keywords
-      : content.story!.keywords;
-
   const image = isElement
     ? null
     : isTemple
@@ -176,47 +170,68 @@ export default function DetailOverlay({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex ${
-        isMobile ? "items-end" : "items-center justify-center"
-      }`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-3`}
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={handleBackdropClick}
     >
+      {/* 嵌入式 entry 弹出放大特效 CSS */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes postcardPop {
+          0% {
+            opacity: 0;
+            transform: scale(0.35) rotate(-6deg) translateY(50px);
+          }
+          65% {
+            transform: scale(1.025) rotate(1deg) translateY(-5px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg) translateY(0);
+          }
+        }
+        .postcard-container {
+          animation: postcardPop 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+      `}} />
+
+      {/* 遮罩背景 */}
       <div
-        className="absolute inset-0 bg-ink/50 backdrop-blur-[3px]"
+        className="absolute inset-0 bg-ink/65 backdrop-blur-[4px]"
         style={{
           transition: reducedMotion ? "none" : "opacity 0.4s ease",
         }}
         aria-hidden="true"
       />
 
+      {/* 竖向明信片卡片 - 高度固定为 540px，宽度为 360px/380px，无内部滚动条，一页纸布局 */}
       <div
-        className={`relative z-10 flex w-full flex-col bg-rice shadow-2xl ${
+        className={`relative z-10 flex flex-col justify-between bg-[#F4EFE6] text-ink p-4 border border-ink/10 shadow-2xl rounded-sm postcard-container overflow-hidden ${
           isMobile
-            ? "max-h-[85vh] rounded-t-md"
-            : "mx-6 max-h-[90vh] max-w-3xl rounded-sm"
+            ? "h-[500px] w-[330px]"
+            : "h-[540px] w-[370px]"
         }`}
         style={{
-          animation: reducedMotion
-            ? "none"
-            : isMobile
-              ? "slideUp 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-              : "fadeScale 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+          boxShadow: "0 20px 50px rgba(38, 36, 31, 0.3), inset 0 0 40px rgba(139, 53, 46, 0.04)",
         }}
       >
+        {/* 顶部经典双细线明信片边框装饰 */}
+        <div className="absolute inset-2 pointer-events-none border border-ink/5 rounded-sm" />
+        <div className="absolute inset-2.5 pointer-events-none border border-dashed border-[#8B352E]/10 rounded-sm" />
+
+        {/* 关闭按钮 - 设计成一个古风的小圆盖戳记 */}
         <button
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-sm text-ink/60 transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
           aria-label={t("detail.close")}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path
               d="M3 3L13 13M13 3L3 13"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
               strokeLinecap="round"
             />
           </svg>
@@ -265,17 +280,6 @@ export default function DetailOverlay({
             </p>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {keywords.map((kw) => (
-              <span
-                key={kw}
-                className="rounded-sm bg-parchment px-2.5 py-1 font-sans text-[10px] text-stone"
-              >
-                {kw}
-              </span>
-            ))}
-          </div>
-
           {!isElement && (
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <ActionButton primary>{t("detail.viewStory")}</ActionButton>
@@ -300,18 +304,20 @@ export default function DetailOverlay({
 function ActionButton({
   children,
   primary = false,
+  className = "",
 }: {
   children: React.ReactNode;
   primary?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
-      className={`rounded-sm px-5 py-2.5 font-sans text-xs tracking-wider transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-offset-2 focus-visible:ring-offset-rice ${
+      className={`rounded-xs px-3 font-serif text-[11px] tracking-widest transition-all duration-300 font-medium active:scale-97 shadow-sm flex items-center justify-center gap-1 ${
         primary
-          ? "bg-cinnabar text-rice hover:bg-cinnabar/90"
-          : "border border-ink/15 text-ink hover:border-ink/30"
-      }`}
+          ? "bg-[#8B352E] text-[#FDFBF7] hover:bg-[#8B352E]/90 border border-[#8B352E] hover:shadow-md"
+          : "border border-[#8B352E]/25 text-[#8B352E] hover:bg-[#8B352E]/5 hover:border-[#8B352E]/40 bg-white/40"
+      } ${className}`}
     >
       {children}
     </button>

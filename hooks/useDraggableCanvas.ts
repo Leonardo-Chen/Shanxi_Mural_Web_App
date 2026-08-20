@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
 import { useDrag } from "@use-gesture/react";
+import { gsap } from "gsap";
 import { useCanvasBounds } from "./useCanvasBounds";
 import { useReducedMotion } from "./useReducedMotion";
 
@@ -22,8 +22,8 @@ export interface UseDraggableCanvasOptions {
   onPositionChange?: (pos: CanvasPosition) => void;
 }
 
-const FRICTION = 0.92;
-const MIN_VELOCITY = 0.5;
+const FRICTION = 0.95;
+const MIN_VELOCITY = 0.15;
 
 export function useDraggableCanvas({
   canvasWidth,
@@ -48,6 +48,8 @@ export function useDraggableCanvas({
   const inertiaFrameRef = useRef<number | null>(null);
   const dragStartRef = useRef<CanvasPosition>({ x: 0, y: 0 });
   const zoomRafRef = useRef<number | null>(null);
+  const hasDraggedRef = useRef(false);
+  const panTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const { applyEdgeResistance, clampPosition, clampForScale } =
     useCanvasBounds({
@@ -68,6 +70,25 @@ export function useDraggableCanvas({
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const applyPosition = useCallback(
+    (x: number, y: number, clamp = true) => {
+      const next = clamp ? applyEdgeResistance(x, y) : { x, y };
+      positionRef.current.x = next.x;
+      positionRef.current.y = next.y;
+      setPosition({ x: next.x, y: next.y });
+      onPositionChange?.(positionRef.current);
+    },
+    [applyEdgeResistance, onPositionChange]
+  );
+
+  const stopInertia = useCallback(() => {
+    if (inertiaFrameRef.current !== null) {
+      cancelAnimationFrame(inertiaFrameRef.current);
+      inertiaFrameRef.current = null;
+    }
+    velocityRef.current = { x: 0, y: 0 };
   }, []);
 
   useEffect(() => {
@@ -95,17 +116,6 @@ export function useDraggableCanvas({
     viewportSize.width,
   ]);
 
-  const applyPosition = useCallback(
-    (x: number, y: number, clamp = true) => {
-      const next = clamp ? applyEdgeResistance(x, y) : { x, y };
-      positionRef.current.x = next.x;
-      positionRef.current.y = next.y;
-      setPosition({ x: next.x, y: next.y });
-      onPositionChange?.(positionRef.current);
-    },
-    [applyEdgeResistance, onPositionChange]
-  );
-
   const updatePosition = useCallback(
     (x: number, y: number) => {
       applyPosition(x, y, true);
@@ -113,67 +123,69 @@ export function useDraggableCanvas({
     [applyPosition]
   );
 
-  const stopInertia = useCallback(() => {
-    if (inertiaFrameRef.current !== null) {
-      cancelAnimationFrame(inertiaFrameRef.current);
-      inertiaFrameRef.current = null;
-    }
-  }, []);
-
-  const startInertia = useCallback(() => {
-    if (reducedMotion) return;
-
+  const runInertia = useCallback(() => {
     const tick = () => {
       velocityRef.current.x *= FRICTION;
       velocityRef.current.y *= FRICTION;
-
-      if (
-        Math.abs(velocityRef.current.x) < MIN_VELOCITY &&
-        Math.abs(velocityRef.current.y) < MIN_VELOCITY
-      ) {
-        stopInertia();
+      const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
+      if (speed < MIN_VELOCITY) {
+        inertiaFrameRef.current = null;
+        velocityRef.current = { x: 0, y: 0 };
         return;
       }
-
-      const nextX = positionRef.current.x + velocityRef.current.x;
-      const nextY = positionRef.current.y + velocityRef.current.y;
-      updatePosition(nextX, nextY);
+      applyPosition(
+        positionRef.current.x + velocityRef.current.x,
+        positionRef.current.y + velocityRef.current.y
+      );
       inertiaFrameRef.current = requestAnimationFrame(tick);
     };
-
-    stopInertia();
     inertiaFrameRef.current = requestAnimationFrame(tick);
-  }, [reducedMotion, stopInertia, updatePosition]);
+  }, [applyPosition]);
 
   const bind = useDrag(
-    ({ movement: [mx, my], velocity: [vx, vy], last, first, event }) => {
+    ({
+      event,
+      movement: [mx, my],
+      velocity: [vx, vy],
+      direction: [dirX, dirY],
+      last,
+      first,
+    }) => {
       if (!enabled) return;
 
       const target = event?.target as HTMLElement | undefined;
       if (
         !allowDragFromInteractive &&
         target?.closest("[data-card-interactive], [data-element-interactive]")
-      )
+      ) {
         return;
+      }
 
       if (first) {
         stopInertia();
+        panTweenRef.current?.kill();
         setIsDragging(true);
+        hasDraggedRef.current = false;
         dragStartRef.current = { ...positionRef.current };
       }
 
-      updatePosition(
-        dragStartRef.current.x + mx,
-        dragStartRef.current.y + my
-      );
+      if (Math.hypot(mx, my) > 3) {
+        hasDraggedRef.current = true;
+      }
+
+      applyPosition(dragStartRef.current.x + mx, dragStartRef.current.y + my);
 
       if (last) {
         setIsDragging(false);
-        velocityRef.current = {
-          x: vx * 15,
-          y: vy * 15,
-        };
-        startInertia();
+        if (Math.hypot(mx, my) > 5 && !reducedMotion) {
+          velocityRef.current = {
+            x: vx * dirX * 18,
+            y: vy * dirY * 18,
+          };
+          runInertia();
+        } else {
+          velocityRef.current = { x: 0, y: 0 };
+        }
       }
     },
     {
@@ -181,8 +193,6 @@ export function useDraggableCanvas({
       pointer: { touch: true },
     }
   );
-
-  const panTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const navigateTo = useCallback(
     (
@@ -237,8 +247,12 @@ export function useDraggableCanvas({
       stopInertia();
       panTweenRef.current?.kill();
       panTweenRef.current = null;
-      const width = viewportSize.width || (typeof window !== "undefined" ? window.innerWidth : 1);
-      const height = viewportSize.height || (typeof window !== "undefined" ? window.innerHeight : 1);
+      const width =
+        viewportSize.width ||
+        (typeof window !== "undefined" ? window.innerWidth : 1);
+      const height =
+        viewportSize.height ||
+        (typeof window !== "undefined" ? window.innerHeight : 1);
       const z = Math.min(maxZoom, Math.max(0.25, nextZoom));
       zoomRef.current = z;
       setZoom(z);
@@ -250,7 +264,15 @@ export function useDraggableCanvas({
       setPosition(next);
       onPositionChange?.(positionRef.current);
     },
-    [initialCenter.x, initialCenter.y, maxZoom, onPositionChange, stopInertia, viewportSize.height, viewportSize.width]
+    [
+      initialCenter.x,
+      initialCenter.y,
+      maxZoom,
+      onPositionChange,
+      stopInertia,
+      viewportSize.height,
+      viewportSize.width,
+    ]
   );
 
   const cancelPan = useCallback(() => {
@@ -293,7 +315,8 @@ export function useDraggableCanvas({
       if (!enabled) return;
       event.preventDefault();
       const delta =
-        event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 800 : 1);
+        event.deltaY *
+        (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 800 : 1);
       const factor = Math.exp(-delta * 0.0016);
       setZoomAt(zoomRef.current * factor, event.clientX, event.clientY);
     },
@@ -316,7 +339,14 @@ export function useDraggableCanvas({
     const next = Math.min(maxZoom, Math.max(minZoom, zoomRef.current));
     if (Math.abs(next - zoomRef.current) < 0.0001) return;
     setZoomAt(next, viewportSize.width / 2, viewportSize.height / 2);
-  }, [initialized, maxZoom, minZoom, setZoomAt, viewportSize.height, viewportSize.width]);
+  }, [
+    initialized,
+    maxZoom,
+    minZoom,
+    setZoomAt,
+    viewportSize.height,
+    viewportSize.width,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -344,5 +374,6 @@ export function useDraggableCanvas({
     maxZoom,
     cancelPan,
     resetView,
+    hasDraggedRef,
   };
 }

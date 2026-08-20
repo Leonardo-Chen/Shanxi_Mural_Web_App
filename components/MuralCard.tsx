@@ -121,20 +121,29 @@ function MuralCardInner({
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="absolute cursor-pointer will-change-transform"
+        className="absolute cursor-pointer will-change-transform grid__item"
         style={{
-          left: card.x,
-          top: card.y,
           width: card.width,
           height: card.height,
-          transform: `translate(${parallaxX}px, ${parallaxY}px) rotate(${rotation}deg) scale(${scale})`,
+          transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
           zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
           opacity: introVisible ? 0 : 1,
           transition: transformTransition,
           pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
         }}
       >
-        <TempleCardContent temple={temple} isHovered={isHovered} priority={priority} />
+        <div className="grid__itemCard h-full w-full">
+          <TempleCardContent temple={temple} isHovered={isHovered} priority={priority} />
+          {/* Back structure referencing user's design */}
+          <div className="grid__itemBack pointer-events-none opacity-0 hidden">
+            <div className="grid__itemClose pointer"></div>
+            <div className="grid__itemThumb">
+              <picture className="grid__itemThumbInner">
+                <img src={temple.image} alt={temple.name} />
+              </picture>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -192,6 +201,7 @@ function MuralCardInner({
   }
 
   const story = card as StoryCardData;
+  const squareSize = card.height * 0.9;
   return (
     <div
       ref={cardRef}
@@ -204,20 +214,29 @@ function MuralCardInner({
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="absolute cursor-pointer will-change-transform"
+      className="absolute cursor-pointer will-change-transform grid__item"
       style={{
-        left: card.x,
-        top: card.y,
-        width: card.width,
-        height: card.height,
-        transform: `translate(${parallaxX}px, ${parallaxY}px) rotate(${rotation}deg) scale(${scale})`,
+        width: squareSize,
+        height: squareSize,
+        transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
         zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
         opacity: introVisible ? 0 : 1,
         transition: transformTransition,
         pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
       }}
     >
-      <StoryCardContent story={story} isHovered={isHovered} priority={priority} />
+      <div className="grid__itemCard h-full w-full">
+        <StoryCardContent story={story} isHovered={isHovered} priority={priority} />
+        {/* Back structure referencing user's design */}
+        <div className="grid__itemBack pointer-events-none opacity-0 hidden">
+          <div className="grid__itemClose pointer"></div>
+          <div className="grid__itemThumb">
+            <picture className="grid__itemThumbInner">
+              <img src={story.image} alt={story.title} />
+            </picture>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -236,7 +255,7 @@ function TempleCardContent({
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-sm bg-rice/60 shadow-[0_2px_12px_rgba(38,36,31,0.08)]">
-      <div className="relative flex-1 overflow-hidden">
+      <div className="grid__itemPicture relative flex-1 overflow-hidden">
         <Image
           src={copy.image}
           alt={copy.imageAlt}
@@ -323,8 +342,8 @@ function StoryCardContent({
   priority: boolean;
 }) {
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-md bg-rice/50 shadow-[0_1px_8px_rgba(38,36,31,0.06)]">
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-md">
+    <div className="group flex h-full flex-row overflow-hidden rounded-md bg-rice/50 shadow-[0_1px_8px_rgba(38,36,31,0.06)]">
+      <div className="grid__itemPicture relative w-[42%] h-full overflow-hidden rounded-l-md shrink-0">
         <Image
           src={story.image}
           alt={story.imageAlt}
@@ -333,15 +352,15 @@ function StoryCardContent({
           priority={priority}
           loading={priority ? undefined : "lazy"}
           draggable={false}
-          className="pointer-events-none select-none rounded-md object-cover group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
+          className="pointer-events-none select-none rounded-l-md object-cover group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
           style={{ WebkitUserDrag: "none" } as React.CSSProperties}
         />
       </div>
-      <div className="shrink-0 px-3 py-2.5">
+      <div className="flex-1 flex items-center justify-start px-3 py-2">
         <p
-          className={`font-serif text-[12px] leading-snug text-ink/80 transition-colors ${
-            isHovered ? "text-ink" : ""
-          }`}
+          className={`font-serif text-[12px] leading-[1.4] text-ink/80 transition-colors ${
+            isHovered ? "text-ink font-semibold" : ""
+          } line-clamp-4 text-left`}
         >
           {story.title}
         </p>

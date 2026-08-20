@@ -9,6 +9,7 @@ import DetailOverlay, { type DetailContent } from "./DetailOverlay";
 import FixedNavigation from "./FixedNavigation";
 import NavPanel, { type NavSection } from "./NavPanel";
 import DragIndicator from "./DragIndicator";
+import { MobilePositionIndicator } from "./MiniMap";
 import MuralExperience from "./mural/MuralExperience";
 import MuralMatchingExperience from "./matching/MuralMatchingExperience";
 import type { CoverElement } from "@/data/coverElements";
@@ -136,6 +137,7 @@ export default function MuralHomepage() {
     navigateTo,
     resetView,
     cancelPan,
+    hasDraggedRef,
   } = useDraggableCanvas({
     canvasWidth: canvasSize.width,
     canvasHeight: canvasSize.height,
@@ -648,6 +650,7 @@ export default function MuralHomepage() {
             activeTempleIds={activeTempleIds}
             focusingId={focusingCardId}
             onOutlineComplete={handleMuralOutlineComplete}
+            hasDraggedRef={hasDraggedRef}
           />
 
           <button
@@ -664,6 +667,16 @@ export default function MuralHomepage() {
               !detailContent && !navSection && !focusingCardId && !selectedCardId
             }
           />
+
+          {isMobile && (
+            <MobilePositionIndicator
+              canvasWidth={canvasSize.width}
+              canvasHeight={canvasSize.height}
+              viewportWidth={viewportSize.width}
+              viewportHeight={viewportSize.height}
+              position={position}
+            />
+          )}
         </>
       )}
 

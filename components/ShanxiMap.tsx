@@ -186,21 +186,6 @@ export default function ShanxiMap({
     return [];
   }, [focusTempleId, pinnedPrefecture, pinnedTempleId]);
 
-  const cancelClearHover = useCallback(() => {
-    if (clearHoverTimerRef.current !== null) {
-      window.clearTimeout(clearHoverTimerRef.current);
-      clearHoverTimerRef.current = null;
-    }
-  }, []);
-
-  const scheduleClearHover = useCallback(() => {
-    cancelClearHover();
-    clearHoverTimerRef.current = window.setTimeout(() => {
-      setHoveredTempleId(null);
-      setHoveredPrefecture(null);
-    }, 240);
-  }, [cancelClearHover]);
-
   useEffect(() => {
     return () => {
       if (selectTimerRef.current !== null) {
@@ -422,6 +407,21 @@ export default function ShanxiMap({
     setHoveredTempleId(null);
   }, []);
 
+  const cancelClearHover = useCallback(() => {
+    if (clearHoverTimerRef.current !== null) {
+      window.clearTimeout(clearHoverTimerRef.current);
+      clearHoverTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleClearHover = useCallback(() => {
+    cancelClearHover();
+    clearHoverTimerRef.current = window.setTimeout(() => {
+      setHoveredTempleId(null);
+      setHoveredPrefecture(null);
+    }, 180);
+  }, [cancelClearHover]);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<SVGSVGElement>) => {
       if (e.button !== 0) return;
@@ -509,6 +509,18 @@ export default function ShanxiMap({
     setTransform({ x: 0, y: 0, k: 1 });
   }, []);
 
+  const handleSvgClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (gestureMovedRef.current) {
+      gestureMovedRef.current = false;
+      return;
+    }
+    const target = e.target as HTMLElement | SVGElement;
+    if (!target.closest("[data-map-interactive]")) {
+      setHoveredPrefecture(null);
+      setHoveredTempleId(null);
+    }
+  }, []);
+
   const handleSelect = useCallback(
     (templeId: string) => {
       if (!templeHasMurals(templeId)) return;
@@ -557,6 +569,7 @@ export default function ShanxiMap({
           onPointerMove={handlePointerMove}
           onPointerUp={endPan}
           onPointerCancel={endPan}
+          onClick={handleSvgClick}
         >
           <g transform={mapTransform}>
             <defs>
@@ -649,6 +662,16 @@ export default function ShanxiMap({
                           setHoveredTempleId(null);
                         }}
                         onMouseLeave={scheduleClearHover}
+                        onClick={(e) => {
+                          if (!city.hasTemple) return;
+                          e.stopPropagation();
+                          if (gestureMovedRef.current) {
+                            gestureMovedRef.current = false;
+                            return;
+                          }
+                          setHoveredPrefecture(city.name);
+                          setHoveredTempleId(null);
+                        }}
                         style={{
                           transition: reducedMotion
                             ? "none"
@@ -717,6 +740,10 @@ export default function ShanxiMap({
                       setHoveredPrefecture(null);
                     }}
                     onMouseLeave={scheduleClearHover}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelect(m.id);
+                    }}
                     role="button"
                     tabIndex={hasMurals ? 0 : -1}
                     aria-disabled={!hasMurals}
