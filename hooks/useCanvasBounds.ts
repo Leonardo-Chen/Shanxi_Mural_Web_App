@@ -16,6 +16,48 @@ export interface UseCanvasBoundsOptions {
   viewportHeight: number;
   /** 允许超出边界的额外像素（产生阻力区） */
   overscroll?: number;
+  scale?: number;
+}
+
+function scaledBounds(
+  canvasWidth: number,
+  canvasHeight: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  scale: number,
+  overscroll: number
+): Bounds {
+  const width = canvasWidth * scale;
+  const height = canvasHeight * scale;
+
+  if (width <= viewportWidth) {
+    const x = (viewportWidth - width) / 2;
+    const y =
+      height <= viewportHeight ? (viewportHeight - height) / 2 : overscroll;
+    return {
+      minX: x,
+      maxX: x,
+      minY: height <= viewportHeight ? y : viewportHeight - height - overscroll,
+      maxY: height <= viewportHeight ? y : overscroll,
+    };
+  }
+
+  if (height <= viewportHeight) {
+    const y = (viewportHeight - height) / 2;
+    return {
+      minX: viewportWidth - width - overscroll,
+      maxX: overscroll,
+      minY: y,
+      maxY: y,
+    };
+  }
+
+  return {
+    minX: viewportWidth - width - overscroll,
+    maxX: overscroll,
+    minY: viewportHeight - height - overscroll,
+    maxY: overscroll,
+  };
 }
 
 export function useCanvasBounds({
@@ -24,22 +66,33 @@ export function useCanvasBounds({
   viewportWidth,
   viewportHeight,
   overscroll = 80,
+  scale = 1,
 }: UseCanvasBoundsOptions) {
-  const bounds = useMemo<Bounds>(() => {
-    const minX = -(canvasWidth - viewportWidth) - overscroll;
-    const maxX = overscroll;
-    const minY = -(canvasHeight - viewportHeight) - overscroll;
-    const maxY = overscroll;
-    return { minX, maxX, minY, maxY };
-  }, [canvasWidth, canvasHeight, viewportWidth, viewportHeight, overscroll]);
+  const bounds = useMemo<Bounds>(
+    () =>
+      scaledBounds(
+        canvasWidth,
+        canvasHeight,
+        viewportWidth,
+        viewportHeight,
+        scale,
+        overscroll
+      ),
+    [canvasWidth, canvasHeight, viewportWidth, viewportHeight, overscroll, scale]
+  );
 
-  const hardBounds = useMemo<Bounds>(() => {
-    const minX = -(canvasWidth - viewportWidth);
-    const maxX = 0;
-    const minY = -(canvasHeight - viewportHeight);
-    const maxY = 0;
-    return { minX, maxX, minY, maxY };
-  }, [canvasWidth, canvasHeight, viewportWidth, viewportHeight]);
+  const hardBounds = useMemo<Bounds>(
+    () =>
+      scaledBounds(
+        canvasWidth,
+        canvasHeight,
+        viewportWidth,
+        viewportHeight,
+        scale,
+        0
+      ),
+    [canvasWidth, canvasHeight, viewportWidth, viewportHeight, scale]
+  );
 
   const clampPosition = useCallback(
     (x: number, y: number, useSoft = true): { x: number; y: number } => {
@@ -80,11 +133,29 @@ export function useCanvasBounds({
 
   const centerOn = useCallback(
     (pointX: number, pointY: number): { x: number; y: number } => {
-      const x = -(pointX - viewportWidth / 2);
-      const y = -(pointY - viewportHeight / 2);
+      const x = viewportWidth / 2 - pointX * scale;
+      const y = viewportHeight / 2 - pointY * scale;
       return clampPosition(x, y, false);
     },
-    [viewportWidth, viewportHeight, clampPosition]
+    [viewportWidth, viewportHeight, scale, clampPosition]
+  );
+
+  const clampForScale = useCallback(
+    (x: number, y: number, nextScale: number, useSoft = true) => {
+      const b = scaledBounds(
+        canvasWidth,
+        canvasHeight,
+        viewportWidth,
+        viewportHeight,
+        nextScale,
+        useSoft ? overscroll : 0
+      );
+      return {
+        x: Math.min(b.maxX, Math.max(b.minX, x)),
+        y: Math.min(b.maxY, Math.max(b.minY, y)),
+      };
+    },
+    [canvasWidth, canvasHeight, viewportWidth, viewportHeight, overscroll]
   );
 
   return {
@@ -93,5 +164,6 @@ export function useCanvasBounds({
     clampPosition,
     applyEdgeResistance,
     centerOn,
+    clampForScale,
   };
 }

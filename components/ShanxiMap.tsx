@@ -5,15 +5,23 @@ import { geoArea, geoMercator, geoPath, type GeoProjection } from "d3-geo";
 import { gsap } from "gsap";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import { temples, type Temple } from "@/data/temples";
+import { templeHasMurals } from "@/data/murals";
 import {
   getPrefectureColor,
   prefecturesWithTemples,
   templePrefecture,
 } from "@/data/mapRegions";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import {
+  locPrefecture,
+  locRegionShort,
+  locTemple,
+} from "@/lib/i18n/localize";
 
 interface ShanxiMapProps {
   onSelectTemple: (templeId: string) => void;
+  focusTempleId?: string | null;
 }
 
 const VIEW_W = 640;
@@ -32,7 +40,6 @@ const LABEL_OFFSET: Record<
   foguang: { dx: 14, dy: 18, anchor: "start" },
   duofu: { dx: -12, dy: -14, anchor: "end" },
   longquan: { dx: 12, dy: 16, anchor: "start" },
-  buer: { dx: 14, dy: -12, anchor: "start" },
   huayan: { dx: -14, dy: -14, anchor: "end" },
   shanhua: { dx: 14, dy: 14, anchor: "start" },
   chongfu: { dx: -14, dy: -14, anchor: "end" },
@@ -50,6 +57,7 @@ interface CityPath {
   name: string;
   d: string;
   hasTemple: boolean;
+  hasMuralTemple: boolean;
   labelX: number;
   labelY: number;
 }
@@ -101,8 +109,12 @@ function clampZoom(k: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
 }
 
-export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
+export default function ShanxiMap({
+  onSelectTemple,
+  focusTempleId = null,
+}: ShanxiMapProps) {
   const reducedMotion = useReducedMotion();
+  const { t, locale } = useLocale();
   const titleId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
   const regionsRef = useRef<SVGGElement>(null);
@@ -134,22 +146,45 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     moved: boolean;
   } | null>(null);
   const gestureMovedRef = useRef(false);
+  const pendingSelectRef = useRef<
+    | { kind: "temple"; id: string }
+    | { kind: "prefecture"; name: string }
+    | null
+  >(null);
+
+  const [pinnedTempleId, setPinnedTempleId] = useState<string | null>(
+    focusTempleId
+  );
+  const [pinnedPrefecture, setPinnedPrefecture] = useState<string | null>(null);
+  const focusedOnceRef = useRef<string | null>(null);
+  const zoomTweenRef = useRef<gsap.core.Tween | null>(null);
+
+  useEffect(() => {
+    if (focusTempleId) {
+      setPinnedTempleId(focusTempleId);
+      setPinnedPrefecture(null);
+    }
+  }, [focusTempleId]);
 
   const activePrefecture =
     (hoveredTempleId ? templePrefecture[hoveredTempleId] : null) ??
-    hoveredPrefecture;
+    hoveredPrefecture ??
+    pinnedPrefecture ??
+    (pinnedTempleId ? templePrefecture[pinnedTempleId] : null) ??
+    (focusTempleId ? templePrefecture[focusTempleId] : null);
 
   const visibleTemples = useMemo(() => {
-    if (hoveredTempleId) {
-      return temples.filter((t) => t.id === hoveredTempleId);
+    if (pinnedTempleId) {
+      return temples.filter((t) => t.id === pinnedTempleId);
     }
-    if (hoveredPrefecture) {
-      return temples.filter(
-        (t) => templePrefecture[t.id] === hoveredPrefecture
-      );
+    if (pinnedPrefecture) {
+      return temples.filter((t) => templePrefecture[t.id] === pinnedPrefecture);
+    }
+    if (focusTempleId) {
+      return temples.filter((t) => t.id === focusTempleId);
     }
     return [];
-  }, [hoveredTempleId, hoveredPrefecture]);
+  }, [focusTempleId, pinnedPrefecture, pinnedTempleId]);
 
   const cancelClearHover = useCallback(() => {
     if (clearHoverTimerRef.current !== null) {
@@ -174,12 +209,13 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
       if (clearHoverTimerRef.current !== null) {
         window.clearTimeout(clearHoverTimerRef.current);
       }
+      zoomTweenRef.current?.kill();
     };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/data/shanxi.geojson", { cache: "no-store" })
+    fetch("/data/shanxi.geojson")
       .then((r) => {
         if (!r.ok) throw new Error("failed to load geojson");
         return r.json();
@@ -193,6 +229,15 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  const muralPrefectures = useMemo(() => {
+    return new Set(
+      temples
+        .filter((temple) => templeHasMurals(temple.id))
+        .map((temple) => templePrefecture[temple.id])
+        .filter(Boolean)
+    );
   }, []);
 
   const { cityPaths, projection } = useMemo(() => {
@@ -215,6 +260,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
           name,
           d: path(feature) ?? "",
           hasTemple: prefecturesWithTemples.has(name),
+          hasMuralTemple: muralPrefectures.has(name),
           labelX: centroid[0],
           labelY: centroid[1],
         };
@@ -222,7 +268,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     );
 
     return { cityPaths, projection };
-  }, [geo]);
+  }, [geo, muralPrefectures]);
 
   const markers: Marker[] = useMemo(() => {
     if (!projection) return [];
@@ -235,6 +281,54 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
       };
     });
   }, [projection]);
+
+  const zoomToMarker = useCallback(
+    (marker: Marker, animate: boolean) => {
+      const k = 2.7;
+      const target = {
+        x: (VIEW_W / 2 - marker.x) * k,
+        y: (VIEW_H / 2 - marker.y) * k,
+        k,
+      };
+
+      zoomTweenRef.current?.kill();
+
+      if (!animate || reducedMotion) {
+        setTransform(target);
+        return;
+      }
+
+      const current = transformRef.current;
+      const proxy = { x: current.x, y: current.y, k: current.k };
+      zoomTweenRef.current = gsap.to(proxy, {
+        x: target.x,
+        y: target.y,
+        k: target.k,
+        duration: 0.95,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          setTransform({ x: proxy.x, y: proxy.y, k: proxy.k });
+        },
+      });
+    },
+    [reducedMotion]
+  );
+
+  const focusMarker = useMemo(
+    () => markers.find((item) => item.id === focusTempleId) ?? null,
+    [focusTempleId, markers]
+  );
+
+  useEffect(() => {
+    if (!focusTempleId) {
+      focusedOnceRef.current = null;
+      return;
+    }
+    if (!focusMarker) return;
+    if (focusedOnceRef.current === focusTempleId) return;
+    focusedOnceRef.current = focusTempleId;
+    zoomToMarker(focusMarker, true);
+  }, [focusMarker, focusTempleId, zoomToMarker]);
 
   useEffect(() => {
     if (!geo || !regionsRef.current || !markersRef.current) return;
@@ -309,10 +403,40 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     return () => svg.removeEventListener("wheel", onWheel);
   }, [geo, zoomAt]);
 
+  const pinTemple = useCallback(
+    (templeId: string) => {
+      setPinnedTempleId(templeId);
+      setPinnedPrefecture(null);
+      setPressedId(templeHasMurals(templeId) ? templeId : null);
+      setHoveredTempleId(templeId);
+      const marker = markers.find((item) => item.id === templeId);
+      if (marker && templeHasMurals(templeId)) zoomToMarker(marker, true);
+    },
+    [markers, zoomToMarker]
+  );
+
+  const pinPrefecture = useCallback((name: string) => {
+    setPinnedPrefecture(name);
+    setPinnedTempleId(null);
+    setHoveredPrefecture(name);
+    setHoveredTempleId(null);
+  }, []);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<SVGSVGElement>) => {
       if (e.button !== 0) return;
-
+      const target = e.target as Element | null;
+      const templeId = target
+        ?.closest?.("[data-temple-id]")
+        ?.getAttribute("data-temple-id");
+      const prefecture = target
+        ?.closest?.("[data-prefecture]")
+        ?.getAttribute("data-prefecture");
+      pendingSelectRef.current = templeId
+        ? { kind: "temple", id: templeId }
+        : prefecture
+          ? { kind: "prefecture", name: prefecture }
+          : null;
       gestureMovedRef.current = false;
       panRef.current = {
         pointerId: e.pointerId,
@@ -322,7 +446,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
         originY: transform.y,
         moved: false,
       };
-      setIsPanning(true);
+      if (!pendingSelectRef.current) setIsPanning(true);
       e.currentTarget.setPointerCapture(e.pointerId);
     },
     [transform.x, transform.y]
@@ -338,7 +462,10 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
       if (!pan.moved && Math.hypot(dx, dy) > 4) {
         pan.moved = true;
         gestureMovedRef.current = true;
+        pendingSelectRef.current = null;
+        setIsPanning(true);
       }
+      if (!pan.moved) return;
 
       const svg = svgRef.current;
       if (!svg) return;
@@ -354,11 +481,21 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     []
   );
 
-  const endPan = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (!panRef.current || panRef.current.pointerId !== e.pointerId) return;
-    panRef.current = null;
-    setIsPanning(false);
-  }, []);
+  const endPan = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>) => {
+      if (!panRef.current || panRef.current.pointerId !== e.pointerId) return;
+      const moved = panRef.current.moved;
+      const pending = pendingSelectRef.current;
+      panRef.current = null;
+      pendingSelectRef.current = null;
+      gestureMovedRef.current = false;
+      setIsPanning(false);
+      if (moved || !pending) return;
+      if (pending.kind === "temple") pinTemple(pending.id);
+      else pinPrefecture(pending.name);
+    },
+    [pinPrefecture, pinTemple]
+  );
 
   const zoomByButton = useCallback(
     (direction: 1 | -1) => {
@@ -374,24 +511,10 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
   const handleSelect = useCallback(
     (templeId: string) => {
-      if (gestureMovedRef.current) {
-        gestureMovedRef.current = false;
-        return;
-      }
-      setPressedId(templeId);
-      setHoveredTempleId(templeId);
-      if (selectTimerRef.current !== null) {
-        window.clearTimeout(selectTimerRef.current);
-      }
-      if (reducedMotion) {
-        onSelectTemple(templeId);
-        return;
-      }
-      selectTimerRef.current = window.setTimeout(() => {
-        onSelectTemple(templeId);
-      }, 160);
+      if (!templeHasMurals(templeId)) return;
+      onSelectTemple(templeId);
     },
-    [onSelectTemple, reducedMotion]
+    [onSelectTemple]
   );
 
   const mapTransform = `translate(${VIEW_W / 2 + transform.x} ${VIEW_H / 2 + transform.y}) scale(${transform.k}) translate(${-VIEW_W / 2} ${-VIEW_H / 2})`;
@@ -400,6 +523,9 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     !reducedMotion &&
     !activePrefecture &&
     !hoveredTempleId &&
+    !focusTempleId &&
+    !pinnedTempleId &&
+    !pinnedPrefecture &&
     !isPanning &&
     !pressedId;
 
@@ -407,13 +533,13 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
     <div className="fixed inset-0 z-10">
       {loadError && (
         <p className="absolute inset-0 z-10 flex items-center justify-center font-sans text-sm text-ink/50">
-          地图加载失败，请刷新重试
+          {t("map.loadError")}
         </p>
       )}
 
       {!geo && !loadError && (
         <p className="absolute inset-0 z-10 flex items-center justify-center font-sans text-sm text-ink/40">
-          正在展开山西…
+          {t("map.loading")}
         </p>
       )}
 
@@ -471,7 +597,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                         reducedMotion
                           ? undefined
                           : `map-region-bob ${
-                              city.hasTemple
+                              city.hasMuralTemple
                                 ? "map-region-bob--strong"
                                 : "map-region-bob--soft"
                             }`
@@ -510,6 +636,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                         filter="url(#map-block-shadow)"
                         opacity={city.hasTemple ? 1 : 0.94}
                         data-map-interactive={city.hasTemple ? true : undefined}
+                        data-prefecture={city.hasTemple ? city.name : undefined}
                         className={
                           city.hasTemple
                             ? "cursor-pointer"
@@ -544,7 +671,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                           letterSpacing: "0.04em",
                         }}
                       >
-                        {city.name}
+                        {locPrefecture(locale, city.name)}
                       </text>
                     </g>
                   );
@@ -553,43 +680,57 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
             <g ref={markersRef}>
               {markers.map((m) => {
-                const active = hoveredTempleId === m.id;
+                const hasMurals = templeHasMurals(m.id);
+                const featured =
+                  hasMurals &&
+                  (pinnedTempleId === m.id || focusTempleId === m.id);
+                const active = hasMurals && hoveredTempleId === m.id;
                 const dimmed =
-                  (!!hoveredTempleId && hoveredTempleId !== m.id) ||
-                  (!!hoveredPrefecture &&
-                    templePrefecture[m.id] !== hoveredPrefecture);
-                const pressed = pressedId === m.id;
+                  !featured &&
+                  ((!!hoveredTempleId && hoveredTempleId !== m.id) ||
+                    (!!hoveredPrefecture &&
+                      templePrefecture[m.id] !== hoveredPrefecture));
+                const pressed = hasMurals && pressedId === m.id;
                 const offset = LABEL_OFFSET[m.id] ?? {
                   dx: 0,
                   dy: -16,
                   anchor: "middle" as const,
                 };
-                const r = pressed ? 10 : active ? 9 : 6.5;
+                const r = featured || pressed ? 11 : active ? 9 : hasMurals ? 6.5 : 5.5;
+                const marked = featured || active || pressed;
 
                 return (
                   <g
                     key={m.id}
                     transform={`translate(${m.x}, ${m.y})`}
-                    data-map-interactive
-                    className="cursor-pointer outline-none"
-                    opacity={dimmed ? 0.28 : 1}
+                    data-temple-id={m.id}
+                    data-map-interactive="true"
+                    className={
+                      hasMurals
+                        ? "cursor-pointer outline-none"
+                        : "cursor-default outline-none"
+                    }
+                    opacity={hasMurals ? (dimmed ? 0.28 : 1) : dimmed ? 0.2 : 0.55}
                     onMouseEnter={() => {
                       cancelClearHover();
                       setHoveredTempleId(m.id);
                       setHoveredPrefecture(null);
                     }}
                     onMouseLeave={scheduleClearHover}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelect(m.id);
-                    }}
                     role="button"
-                    tabIndex={0}
-                    aria-label={`${m.name}，${m.region}，${m.era}，点击进入`}
+                    tabIndex={hasMurals ? 0 : -1}
+                    aria-disabled={!hasMurals}
+                    aria-current={featured ? "true" : undefined}
+                    aria-label={
+                      hasMurals
+                        ? `${locTemple(locale, m).name}，${locRegionShort(locale, m.region)}，${locTemple(locale, m).era}${featured ? `，${t("map.selected")}` : ""}，${t("map.clickEntrance")}`
+                        : `${locTemple(locale, m).name}，${t("map.closed")}`
+                    }
                     onKeyDown={(e) => {
+                      if (!hasMurals) return;
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleSelect(m.id);
+                        pinTemple(m.id);
                       }
                     }}
                     style={{
@@ -598,7 +739,7 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                   >
                     <circle r={22} fill="transparent" />
 
-                    {!reducedMotion && !active && !pressed && (
+                    {!reducedMotion && hasMurals && !marked && (
                       <circle
                         r={10}
                         fill="none"
@@ -609,15 +750,23 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                     )}
 
                     <circle
-                      r={r + 7}
+                      r={r + (featured ? 10 : 7)}
                       fill="#8B352E"
-                      opacity={active || pressed ? 0.14 : 0}
+                      opacity={marked ? 0.16 : 0}
                     />
                     <circle
                       r={r}
-                      fill={active || pressed ? "#8B352E" : "#3E6264"}
-                      stroke="#EEE8DC"
-                      strokeWidth={1.75}
+                      fill={
+                        hasMurals
+                          ? marked
+                            ? "#8B352E"
+                            : "#3E6264"
+                          : "#9A958C"
+                      }
+                      stroke={
+                        featured ? "#F4E6D8" : hasMurals ? "#EEE8DC" : "#D4CFC6"
+                      }
+                      strokeWidth={featured ? 2.2 : 1.75}
                     />
 
                     <text
@@ -625,14 +774,14 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
                       y={offset.dy}
                       textAnchor={offset.anchor}
                       className="pointer-events-none select-none"
-                      fill="#26241F"
-                      fontSize={active ? 14 : 12.5}
-                      fontWeight={active ? 600 : 400}
+                      fill={hasMurals ? "#26241F" : "#8A8680"}
+                      fontSize={featured || active ? 14 : 12.5}
+                      fontWeight={featured || active ? 600 : 400}
                       style={{
                         fontFamily: "var(--font-serif), Songti SC, serif",
                       }}
                     >
-                      {m.name}
+                      {locTemple(locale, m).name}
                     </text>
                   </g>
                 );
@@ -644,32 +793,32 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
 
       <div className="pointer-events-none absolute bottom-6 left-5 z-20 flex items-end gap-3 md:bottom-8 md:left-6 md:gap-4">
         <div className="pointer-events-auto flex flex-col gap-1">
-          <ZoomButton label="放大" onClick={() => zoomByButton(1)}>
+          <ZoomButton label={t("map.zoomIn")} onClick={() => zoomByButton(1)}>
             +
           </ZoomButton>
-          <ZoomButton label="缩小" onClick={() => zoomByButton(-1)}>
+          <ZoomButton label={t("map.zoomOut")} onClick={() => zoomByButton(-1)}>
             −
           </ZoomButton>
-          <ZoomButton label="重置视图" onClick={resetView}>
+          <ZoomButton label={t("map.reset")} onClick={resetView}>
             ⌂
           </ZoomButton>
         </div>
         <div className="max-w-[13rem] pb-0.5 sm:max-w-xs">
           <h2 id={titleId} className="font-serif text-base text-ink md:text-lg">
-            山西寺观地图
+            {t("map.title")}
           </h2>
           <p className="mt-1 font-serif text-[11px] leading-snug text-ink/65 md:text-xs">
-            悬停地市或标记查看寺庙 · 滚轮缩放 · 拖动平移
+            {t("map.hint")}
           </p>
         </div>
       </div>
 
       <aside
-        className={`absolute right-5 top-1/2 z-20 hidden w-56 -translate-y-1/2 md:right-8 md:block ${
+        className={`absolute right-5 top-1/2 z-30 hidden w-56 -translate-y-1/2 md:right-8 md:block ${
           visibleTemples.length > 0 ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-live="polite"
-        aria-label="悬停寺庙信息"
+        aria-label={t("map.entryAria")}
         onMouseEnter={cancelClearHover}
         onMouseLeave={scheduleClearHover}
       >
@@ -682,30 +831,50 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
         >
           {visibleTemples.length > 0 ? (
             <ul className="flex flex-col gap-1">
-              {hoveredPrefecture && !hoveredTempleId && (
+              {pinnedPrefecture && !pinnedTempleId && (
                 <li className="mb-1 px-1 font-sans text-[10px] tracking-wider text-stone">
-                  {hoveredPrefecture} · {visibleTemples.length} 座寺观
+                  {locPrefecture(locale, pinnedPrefecture)} · {t("map.templeCount", { count: visibleTemples.length })}
                 </li>
               )}
-              {visibleTemples.map((temple) => (
+              {visibleTemples.map((temple) => {
+                const hasMurals = templeHasMurals(temple.id);
+                const copy = locTemple(locale, temple);
+                return (
                 <li key={temple.id}>
                   <button
                     type="button"
+                    disabled={!hasMurals}
                     onClick={() => handleSelect(temple.id)}
-                    className="w-full rounded-sm px-3 py-2.5 text-left transition-colors hover:bg-parchment/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
+                    className={`w-full rounded-sm px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar ${
+                      hasMurals
+                        ? "hover:bg-parchment/90"
+                        : "cursor-default opacity-55 grayscale"
+                    }`}
                   >
-                    <span className="block font-serif text-sm text-ink">
-                      {temple.name}
+                    <span
+                      className={`block font-serif text-sm ${
+                        hasMurals ? "text-ink" : "text-stone/70"
+                      }`}
+                    >
+                      {copy.name}
                     </span>
                     <span className="mt-0.5 block font-sans text-[10px] tracking-wider text-stone">
-                      {temple.region.replace("山西·", "")} · {temple.era}
+                      {locRegionShort(locale, temple.region)} · {copy.era}
                     </span>
                     <span className="mt-1.5 block font-serif text-[11px] leading-snug text-ink/60">
-                      {temple.tagline}
+                      {copy.tagline}
+                    </span>
+                    <span
+                      className={`mt-2 block font-sans text-[10px] tracking-wider ${
+                        hasMurals ? "text-cinnabar" : "text-stone/45"
+                      }`}
+                    >
+                      {hasMurals ? t("map.enter") : t("map.closed")}
                     </span>
                   </button>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           ) : null}
         </div>
@@ -720,22 +889,42 @@ export default function ShanxiMap({ onSelectTemple }: ShanxiMapProps) {
         {visibleTemples.length > 0 && (
           <div className="pointer-events-auto rounded-sm border border-ink/10 bg-rice/95 p-2 shadow-sm backdrop-blur-sm">
             <ul className="flex gap-2 overflow-x-auto">
-              {visibleTemples.map((temple) => (
+              {visibleTemples.map((temple) => {
+                const hasMurals = templeHasMurals(temple.id);
+                const copy = locTemple(locale, temple);
+                return (
                 <li key={temple.id} className="shrink-0">
                   <button
                     type="button"
+                    disabled={!hasMurals}
                     onClick={() => handleSelect(temple.id)}
-                    className="min-w-[8rem] rounded-sm bg-cinnabar/10 px-3 py-2 text-left"
+                    className={`min-w-[8rem] rounded-sm px-3 py-2 text-left ${
+                      hasMurals
+                        ? "bg-cinnabar/10"
+                        : "cursor-default bg-stone/10 grayscale"
+                    }`}
                   >
-                    <span className="block font-serif text-sm text-ink">
-                      {temple.name}
+                    <span
+                      className={`block font-serif text-sm ${
+                        hasMurals ? "text-ink" : "text-stone/70"
+                      }`}
+                    >
+                      {copy.name}
                     </span>
                     <span className="mt-0.5 block font-sans text-[10px] text-stone">
-                      {temple.region.replace("山西·", "")} · {temple.era}
+                      {locRegionShort(locale, temple.region)} · {copy.era}
+                    </span>
+                    <span
+                      className={`mt-1 block font-sans text-[10px] tracking-wider ${
+                        hasMurals ? "text-cinnabar" : "text-stone/45"
+                      }`}
+                    >
+                      {hasMurals ? t("map.enter") : t("map.closed")}
                     </span>
                   </button>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </div>
         )}

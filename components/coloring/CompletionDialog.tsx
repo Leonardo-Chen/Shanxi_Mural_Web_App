@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/components/i18n/LocaleProvider";
+
 interface CompletionDialogProps {
   open: boolean;
   lowCompletion: boolean;
@@ -15,6 +17,7 @@ export default function CompletionDialog({
   onConfirm,
   onClose,
 }: CompletionDialogProps) {
+  const { t } = useLocale();
   if (!open) return null;
 
   return (
@@ -31,12 +34,10 @@ export default function CompletionDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="completion-title" className="font-serif text-lg text-ink">
-          {lowCompletion ? "尚未完成全部区域" : "完成上色"}
+          {lowCompletion ? t("color.unfinishedTitle") : t("color.finish")}
         </h3>
         <p className="mt-3 font-serif text-sm leading-relaxed text-ink/70">
-          {lowCompletion
-            ? "还有一些区域尚未着色，仍然提交吗？"
-            : "确认提交当前作品并与原壁画比较？"}
+          {lowCompletion ? t("color.unfinishedBody") : t("color.confirmSubmit")}
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <button
@@ -44,14 +45,14 @@ export default function CompletionDialog({
             onClick={onContinue}
             className="flex-1 rounded-sm border border-ink/15 px-4 py-2.5 font-sans text-xs tracking-wide text-ink hover:border-ink/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
           >
-            继续上色
+            {t("color.keepColoring")}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="flex-1 rounded-sm bg-cinnabar px-4 py-2.5 font-sans text-xs tracking-wide text-rice hover:bg-cinnabar/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
           >
-            仍然完成
+            {t("color.stillFinish")}
           </button>
         </div>
       </div>

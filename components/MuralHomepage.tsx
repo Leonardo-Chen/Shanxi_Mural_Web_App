@@ -3,32 +3,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import TextureBackground from "./TextureBackground";
-import IntroOverlay from "./IntroOverlay";
 import ShanxiMap from "./ShanxiMap";
 import DraggableCanvas from "./DraggableCanvas";
 import DetailOverlay, { type DetailContent } from "./DetailOverlay";
 import FixedNavigation from "./FixedNavigation";
 import NavPanel, { type NavSection } from "./NavPanel";
 import DragIndicator from "./DragIndicator";
-import MiniMap, { MobilePositionIndicator } from "./MiniMap";
-import { muralCards, muralCardMap, type MuralCardData } from "@/data/muralCards";
+import MuralExperience from "./mural/MuralExperience";
+import MuralMatchingExperience from "./matching/MuralMatchingExperience";
+import type { CoverElement } from "@/data/coverElements";
+import { muralCards, muralCardMap, getExploreCardsForTemple, type MuralCardData } from "@/data/muralCards";
 import { templeMap } from "@/data/temples";
+import { muralMap, templeHasMurals } from "@/data/murals";
 import { canvasLayout } from "@/data/canvasLayout";
-import {
-  scaleCards,
-  scaleSize,
-  scalePoint,
-  getTempleCardTemplates,
-  getVisibleInfiniteTempleCards,
-  resolveTempleCardId,
-  TEMPLE_INFINITE_CANVAS,
-  TEMPLE_INFINITE_CENTER,
-} from "@/lib/canvasScale";
+import { scaleCards, layoutTempleExplore } from "@/lib/canvasScale";
 import { useDraggableCanvas } from "@/hooks/useDraggableCanvas";
 import { useCardTransition } from "@/hooks/useCardTransition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { MAX_STARS, useGameProgress } from "@/hooks/useGameProgress";
+import {
+  FALLBACK_POSTCARDS,
+  fetchPostcardAssets,
+  pickRandomPostcard,
+  type PostcardAsset,
+} from "@/lib/postcards";
+import PostcardReward from "@/components/postcards/PostcardReward";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
-type Phase = "intro" | "map" | "explore";
+type Phase = "cover" | "home" | "matching" | "map" | "explore";
 
 function filterCardsForTemple(
   templeId: string | null,
@@ -54,11 +56,24 @@ function filterCardsForTemple(
 
 export default function MuralHomepage() {
   const reducedMotion = useReducedMotion();
-  const [phase, setPhase] = useState<Phase>("intro");
+  const { t } = useLocale();
+  const [phase, setPhase] = useState<Phase>("cover");
   const [introVisible, setIntroVisible] = useState(true);
   const [selectedTempleId, setSelectedTempleId] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [focusingCardId, setFocusingCardId] = useState<string | null>(null);
   const [detailContent, setDetailContent] = useState<DetailContent | null>(null);
+  const focusingCardIdRef = useRef<string | null>(null);
+  const selectedCardIdRef = useRef<string | null>(null);
+  const muralOpenTimerRef = useRef<number | null>(null);
+  selectedCardIdRef.current = selectedCardId;
+  const [matchingFigureId, setMatchingFigureId] = useState<string | null>(null);
+  const [matchingCoverElement, setMatchingCoverElement] =
+    useState<CoverElement | null>(null);
+  const [matchingSourceRect, setMatchingSourceRect] = useState<DOMRect | null>(
+    null
+  );
+  const [mapFocusTempleId, setMapFocusTempleId] = useState<string | null>(null);
   const [navSection, setNavSection] = useState<NavSection | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [parallaxOffset, setParallaxOffset] = useState({ x: 0, y: 0 });
@@ -66,34 +81,51 @@ export default function MuralHomepage() {
   const parallaxRafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [exploreSession, setExploreSession] = useState(0);
+  const [coverGeneration, setCoverGeneration] = useState(0);
+  const { progress, redeemPostcard } = useGameProgress();
+  const [postcardAssets, setPostcardAssets] = useState<PostcardAsset[]>(
+    FALLBACK_POSTCARDS
+  );
+  const [pendingPostcard, setPendingPostcard] = useState<PostcardAsset | null>(
+    null
+  );
+  const postcardOfferedRef = useRef(false);
+  const [matchingDetailOpen, setMatchingDetailOpen] = useState(false);
 
   const pendingFocusRef = useRef<{ x: number; y: number } | null>(null);
 
   const { captureFlipState, animateClose } = useCardTransition();
 
+  const exploreLayout = useMemo(() => {
+    if (!selectedTempleId) return null;
+    return layoutTempleExplore(
+      getExploreCardsForTemple(selectedTempleId),
+      isMobile
+    );
+  }, [selectedTempleId, isMobile]);
+
   const canvasSize = useMemo(() => {
-    if (selectedTempleId) {
-      return scaleSize(TEMPLE_INFINITE_CANVAS, isMobile);
-    }
+    if (exploreLayout) return exploreLayout.canvas;
     return isMobile ? canvasLayout.mobile : canvasLayout.desktop;
-  }, [isMobile, selectedTempleId]);
+  }, [exploreLayout, isMobile]);
 
   const initialCenter = useMemo(() => {
-    if (selectedTempleId) {
-      return scalePoint(TEMPLE_INFINITE_CENTER, isMobile);
-    }
+    if (exploreLayout) return exploreLayout.center;
     return isMobile
       ? canvasLayout.mobileInitialViewport
       : canvasLayout.initialViewport;
-  }, [isMobile, selectedTempleId]);
+  }, [exploreLayout, isMobile]);
 
-  const templeTemplates = useMemo(() => {
-    if (!selectedTempleId) return [];
-    return getTempleCardTemplates(
-      filterCardsForTemple(selectedTempleId, isMobile),
-      selectedTempleId
-    );
-  }, [selectedTempleId, isMobile]);
+  const handleCanvasPositionChange = useCallback((pos: { x: number; y: number }) => {
+    const dx = pos.x - lastPosRef.current.x;
+    const dy = pos.y - lastPosRef.current.y;
+    lastPosRef.current = pos;
+    if (parallaxRafRef.current !== null) return;
+    parallaxRafRef.current = requestAnimationFrame(() => {
+      setParallaxOffset({ x: dx, y: dy });
+      parallaxRafRef.current = null;
+    });
+  }, []);
 
   const {
     position,
@@ -102,22 +134,30 @@ export default function MuralHomepage() {
     viewportSize,
     bind,
     navigateTo,
+    resetView,
+    cancelPan,
   } = useDraggableCanvas({
     canvasWidth: canvasSize.width,
     canvasHeight: canvasSize.height,
     initialCenter,
-    enabled: phase === "explore" && !detailContent && !navSection,
-    onPositionChange: (pos) => {
-      const dx = pos.x - lastPosRef.current.x;
-      const dy = pos.y - lastPosRef.current.y;
-      lastPosRef.current = pos;
-      if (parallaxRafRef.current !== null) return;
-      parallaxRafRef.current = requestAnimationFrame(() => {
-        setParallaxOffset({ x: dx, y: dy });
-        parallaxRafRef.current = null;
-      });
-    },
+    enabled:
+      phase === "explore" &&
+      !detailContent &&
+      !navSection &&
+      !focusingCardId &&
+      !selectedCardId,
+    allowDragFromInteractive: true,
+    onPositionChange: handleCanvasPositionChange,
   });
+
+  const clearMuralFocus = useCallback(() => {
+    focusingCardIdRef.current = null;
+    setFocusingCardId(null);
+    if (muralOpenTimerRef.current !== null) {
+      window.clearTimeout(muralOpenTimerRef.current);
+      muralOpenTimerRef.current = null;
+    }
+  }, []);
 
   // 拖动结束时清零视差，避免残留偏移
   useEffect(() => {
@@ -127,26 +167,9 @@ export default function MuralHomepage() {
   }, [isDragging]);
 
   const cards = useMemo(() => {
-    if (selectedTempleId && templeTemplates.length > 0) {
-      return getVisibleInfiniteTempleCards(templeTemplates, {
-        viewLeft: -position.x,
-        viewTop: -position.y,
-        viewWidth: viewportSize.width || 1280,
-        viewHeight: viewportSize.height || 800,
-        isMobile,
-      });
-    }
-
+    if (exploreLayout) return exploreLayout.cards;
     return scaleCards(filterCardsForTemple(null, isMobile), isMobile);
-  }, [
-    selectedTempleId,
-    templeTemplates,
-    isMobile,
-    position.x,
-    position.y,
-    viewportSize.width,
-    viewportSize.height,
-  ]);
+  }, [exploreLayout, isMobile]);
 
   const activeTempleIds = useMemo(
     () => (selectedTempleId ? [selectedTempleId] : null),
@@ -167,25 +190,123 @@ export default function MuralHomepage() {
       setNavSection(null);
       setDetailContent(null);
       setSelectedCardId(null);
+      clearMuralFocus();
       setIntroVisible(true);
       setExploreSession((n) => n + 1);
       setPhase("explore");
     },
+    [clearMuralFocus]
+  );
+
+  const handleCoverComplete = useCallback(() => {
+    setPhase("home");
+  }, []);
+
+  const handleContinueFigure = useCallback(
+    (element: CoverElement, sourceRect: DOMRect) => {
+      setMatchingFigureId(element.id);
+      setMatchingCoverElement(element);
+      setMatchingSourceRect(sourceRect);
+      setMatchingDetailOpen(false);
+      setDetailContent(null);
+      setNavSection(null);
+      setPhase("matching");
+    },
     []
   );
 
-  const handleStartExplore = useCallback(() => {
-    setPhase("map");
+  const goHome = useCallback(() => {
+    clearMuralFocus();
+    setDetailContent(null);
+    setSelectedCardId(null);
+    setNavSection(null);
+    setSelectedTempleId(null);
+    setMatchingFigureId(null);
+    setMatchingCoverElement(null);
+    setMatchingSourceRect(null);
+    pendingFocusRef.current = null;
+    setMapFocusTempleId(null);
+    if (phase !== "cover") setPhase("home");
+  }, [clearMuralFocus, phase]);
+
+  const goToCover = useCallback(() => {
+    clearMuralFocus();
+    setDetailContent(null);
+    setSelectedCardId(null);
+    setNavSection(null);
+    setSelectedTempleId(null);
+    setMatchingFigureId(null);
+    setMatchingCoverElement(null);
+    setMatchingSourceRect(null);
+    pendingFocusRef.current = null;
+    setMapFocusTempleId(null);
+    setCoverGeneration((generation) => generation + 1);
+    setPhase("cover");
+  }, [clearMuralFocus]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPostcardAssets().then((assets) => {
+      if (!cancelled && assets.length) setPostcardAssets(assets);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const handleBackToMap = useCallback(() => {
+  useEffect(() => {
+    if (progress.stars < MAX_STARS) {
+      postcardOfferedRef.current = false;
+      setPendingPostcard(null);
+      return;
+    }
+    if (postcardOfferedRef.current) return;
+    const postcard = pickRandomPostcard(
+      postcardAssets,
+      progress.collectedPostcards.map((item) => item.id)
+    );
+    if (!postcard) return;
+    postcardOfferedRef.current = true;
+    setPendingPostcard(postcard);
+  }, [postcardAssets, progress.collectedPostcards, progress.stars]);
+
+  const collectPendingPostcard = useCallback(() => {
+    if (pendingPostcard) {
+      redeemPostcard({
+        id: pendingPostcard.id,
+        src: pendingPostcard.src,
+        title: pendingPostcard.title,
+        collectedAt: new Date().toISOString(),
+      });
+    }
+    setPendingPostcard(null);
+  }, [pendingPostcard, redeemPostcard]);
+
+  const openTempleOnMap = useCallback((templeId: string) => {
+    clearMuralFocus();
+    setMatchingFigureId(null);
+    setMatchingCoverElement(null);
+    setMatchingSourceRect(null);
     setDetailContent(null);
     setSelectedCardId(null);
     setNavSection(null);
     setSelectedTempleId(null);
     pendingFocusRef.current = null;
+    setMapFocusTempleId(templeId);
     setPhase("map");
-  }, []);
+  }, [clearMuralFocus]);
+
+  const handleBackToMap = useCallback(() => {
+    clearMuralFocus();
+    const templeId = selectedTempleId;
+    setDetailContent(null);
+    setSelectedCardId(null);
+    setNavSection(null);
+    setSelectedTempleId(null);
+    pendingFocusRef.current = null;
+    setMapFocusTempleId(templeId);
+    setPhase("map");
+  }, [clearMuralFocus, selectedTempleId]);
 
   useEffect(() => {
     if (phase !== "explore" || !selectedTempleId || !initialized) return;
@@ -198,17 +319,9 @@ export default function MuralHomepage() {
       return;
     }
 
-    const center = scalePoint(TEMPLE_INFINITE_CENTER, isMobile);
-    navigateTo(center.x, center.y, !reducedMotion);
-  }, [
-    phase,
-    selectedTempleId,
-    initialized,
-    isMobile,
-    navigateTo,
-    reducedMotion,
-    exploreSession,
-  ]);
+    resetView(1);
+    // 只在进入寺庙时对准一次，避免拖动过程中被拉回中心
+  }, [phase, selectedTempleId, initialized, exploreSession]);
 
   useEffect(() => {
     if (phase !== "explore") return;
@@ -272,9 +385,37 @@ export default function MuralHomepage() {
 
   const handleSelectCard = useCallback(
     (cardId: string, element: HTMLElement) => {
-      const baseId = resolveTempleCardId(cardId);
-      const card = muralCardMap[baseId];
+      const card =
+        cards.find((item) => item.id === cardId) ?? muralCardMap[cardId];
       if (!card || card.type === "annotation") return;
+
+      if (card.type === "mural") {
+        if (focusingCardIdRef.current === cardId) return;
+        if (selectedCardIdRef.current === cardId) return;
+
+        if (muralOpenTimerRef.current !== null) {
+          window.clearTimeout(muralOpenTimerRef.current);
+          muralOpenTimerRef.current = null;
+        }
+
+        focusingCardIdRef.current = cardId;
+        setFocusingCardId(cardId);
+        setSelectedCardId(null);
+
+        navigateTo(
+          card.x + card.width / 2,
+          card.y + card.height / 2,
+          !reducedMotion,
+          () => {
+            if (focusingCardIdRef.current !== cardId) return;
+            setSelectedCardId(cardId);
+            focusingCardIdRef.current = null;
+            setFocusingCardId(null);
+          },
+          true
+        );
+        return;
+      }
 
       captureFlipState(`[data-flip-id="${cardId}"]`);
       setSelectedCardId(cardId);
@@ -294,24 +435,67 @@ export default function MuralHomepage() {
         });
       }
     },
-    [captureFlipState, reducedMotion]
+    [captureFlipState, cards, navigateTo, reducedMotion]
+  );
+
+  const handleMuralOutlineComplete = useCallback(
+    (cardId: string) => {
+      if (selectedCardIdRef.current !== cardId) return;
+      const card =
+        cards.find((item) => item.id === cardId) ?? muralCardMap[cardId];
+      if (!card || card.type !== "mural") return;
+      const mural = muralMap.get(card.muralId);
+      if (!mural) return;
+
+      captureFlipState(`[data-flip-id="${cardId}"]`);
+
+      const open = () => {
+        if (selectedCardIdRef.current !== cardId) return;
+        setDetailContent({ type: "mural", mural });
+      };
+
+      if (reducedMotion) {
+        open();
+        return;
+      }
+
+      if (muralOpenTimerRef.current !== null) {
+        window.clearTimeout(muralOpenTimerRef.current);
+      }
+      muralOpenTimerRef.current = window.setTimeout(() => {
+        muralOpenTimerRef.current = null;
+        open();
+      }, 180);
+    },
+    [captureFlipState, cards, reducedMotion]
   );
 
   const handleCloseDetail = useCallback(() => {
+    if (detailContent?.type === "element") {
+      setDetailContent(null);
+      return;
+    }
+
     animateClose(() => {
       setDetailContent(null);
       setSelectedCardId(null);
+      clearMuralFocus();
     });
-  }, [animateClose]);
+  }, [animateClose, clearMuralFocus, detailContent]);
 
   const handleNavClick = useCallback(
     (section: NavSection) => {
-      if (phase === "intro") {
-        setPhase("map");
-      }
-      if (detailContent) {
+      if (detailContent || focusingCardIdRef.current || selectedCardIdRef.current) {
         setDetailContent(null);
         setSelectedCardId(null);
+        clearMuralFocus();
+        cancelPan();
+      }
+      if (section === "temples" && phase !== "explore") {
+        setNavSection(null);
+        setMapFocusTempleId(null);
+        setPhase("map");
+        return;
       }
       if (section === "temples" && phase === "explore") {
         setNavSection((prev) => (prev === section ? null : section));
@@ -319,7 +503,7 @@ export default function MuralHomepage() {
       }
       setNavSection((prev) => (prev === section ? null : section));
     },
-    [phase, detailContent]
+    [cancelPan, clearMuralFocus, detailContent, phase]
   );
 
   const handleCloseNav = useCallback(() => {
@@ -328,50 +512,55 @@ export default function MuralHomepage() {
 
   const handleSelectTemple = useCallback(
     (templeId: string) => {
+      if (!templeHasMurals(templeId)) return;
       enterTempleExplore(templeId);
     },
     [enterTempleExplore]
   );
 
-  const handleSelectStory = useCallback(
-    (cardId: string) => {
-      const raw = muralCardMap[cardId];
-      if (!raw || raw.type === "annotation" || !raw.templeId) return;
-
-      const scaled = scaleCards([raw], isMobile)[0];
-      enterTempleExplore(
-        raw.templeId,
-        scaled
-          ? {
-              x: scaled.x + scaled.width / 2,
-              y: scaled.y + scaled.height / 2,
-            }
-          : undefined
-      );
-    },
-    [enterTempleExplore, isMobile]
-  );
+  useEffect(() => {
+    if (phase === "explore") return;
+    cancelPan();
+    clearMuralFocus();
+  }, [cancelPan, clearMuralFocus, phase]);
 
   useEffect(() => {
-    if (!detailContent && !navSection) return;
+    return () => {
+      if (muralOpenTimerRef.current !== null) {
+        window.clearTimeout(muralOpenTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!detailContent && !navSection && !focusingCardId && !selectedCardId) {
+      return;
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (navSection) {
         setNavSection(null);
         return;
       }
-      if (detailContent) handleCloseDetail();
+      if (detailContent) {
+        handleCloseDetail();
+        return;
+      }
+      cancelPan();
+      clearMuralFocus();
+      setSelectedCardId(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detailContent, navSection, handleCloseDetail]);
-
-  const handleMinimapNavigate = useCallback(
-    (x: number, y: number) => {
-      navigateTo(x, y, true);
-    },
-    [navigateTo]
-  );
+  }, [
+    cancelPan,
+    clearMuralFocus,
+    detailContent,
+    focusingCardId,
+    handleCloseDetail,
+    navSection,
+    selectedCardId,
+  ]);
 
   if (!initialized && viewportSize.width === 0) {
     return (
@@ -390,13 +579,55 @@ export default function MuralHomepage() {
       <TextureBackground />
 
       <FixedNavigation
-        compact={phase !== "intro"}
+        compact={phase !== "cover"}
+        variant={
+          phase === "cover"
+            ? "cover"
+            : phase === "home"
+              ? "home"
+              : phase === "matching"
+                ? "matching"
+                : "site"
+        }
         activeSection={navSection}
         onNavClick={handleNavClick}
+        onLogoClick={goToCover}
+        instructionKey={
+          phase === "matching" && matchingDetailOpen
+            ? "match.detailHint"
+            : undefined
+        }
       />
 
+      <MuralExperience
+        hidden={
+          phase === "matching" || phase === "map" || phase === "explore"
+        }
+        mode={phase === "cover" ? "cover" : "home"}
+        coverGeneration={coverGeneration}
+        onCoverComplete={handleCoverComplete}
+        onContinueFigure={handleContinueFigure}
+        detailOpen={!!detailContent}
+      />
+
+      {phase === "matching" && matchingFigureId && (
+        <MuralMatchingExperience
+          figureId={matchingFigureId}
+          coverElement={matchingCoverElement}
+          sourceRect={matchingSourceRect}
+          isMobile={isMobile}
+          onOpenTemple={openTempleOnMap}
+          onReturnHome={goHome}
+          hideFeedback={Boolean(pendingPostcard)}
+          onDetailOpen={setMatchingDetailOpen}
+        />
+      )}
+
       {phase === "map" && (
-        <ShanxiMap onSelectTemple={handleSelectTemple} />
+        <ShanxiMap
+          focusTempleId={mapFocusTempleId}
+          onSelectTemple={handleSelectTemple}
+        />
       )}
 
       {phase === "explore" && (
@@ -415,6 +646,8 @@ export default function MuralHomepage() {
             parallaxOffset={parallaxOffset}
             isMobile={isMobile}
             activeTempleIds={activeTempleIds}
+            focusingId={focusingCardId}
+            onOutlineComplete={handleMuralOutlineComplete}
           />
 
           <button
@@ -422,44 +655,22 @@ export default function MuralHomepage() {
             onClick={handleBackToMap}
             className="pointer-events-auto fixed left-5 top-20 z-40 rounded-sm border border-ink/15 bg-rice/80 px-3 py-2 font-sans text-[11px] tracking-wide text-ink/70 backdrop-blur-sm transition-colors hover:border-ink/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar md:left-6 md:top-24"
           >
-            ← 返回地图
+            {t("explore.backToMap")}
             {selectedTempleName ? ` · ${selectedTempleName}` : ""}
           </button>
 
-          <DragIndicator visible={!detailContent && !navSection} />
-
-          {!isMobile && (
-            <MiniMap
-              canvasWidth={canvasSize.width}
-              canvasHeight={canvasSize.height}
-              viewportWidth={viewportSize.width}
-              viewportHeight={viewportSize.height}
-              position={position}
-              onNavigate={handleMinimapNavigate}
-            />
-          )}
-
-          {isMobile && (
-            <MobilePositionIndicator
-              canvasWidth={canvasSize.width}
-              canvasHeight={canvasSize.height}
-              viewportWidth={viewportSize.width}
-              viewportHeight={viewportSize.height}
-              position={position}
-            />
-          )}
+          <DragIndicator
+            visible={
+              !detailContent && !navSection && !focusingCardId && !selectedCardId
+            }
+          />
         </>
-      )}
-
-      {phase === "intro" && (
-        <IntroOverlay visible={phase === "intro"} onStart={handleStartExplore} />
       )}
 
       <NavPanel
         section={navSection}
         onClose={handleCloseNav}
         onSelectTemple={handleSelectTemple}
-        onSelectStory={handleSelectStory}
         isMobile={isMobile}
       />
 
@@ -468,6 +679,16 @@ export default function MuralHomepage() {
         onClose={handleCloseDetail}
         isMobile={isMobile}
       />
+
+      {pendingPostcard && (
+        <PostcardReward
+          postcard={pendingPostcard}
+          alreadyCollected={progress.collectedPostcards.some(
+            (item) => item.id === pendingPostcard.id
+          )}
+          onCollect={collectPendingPostcard}
+        />
+      )}
     </div>
   );
 }

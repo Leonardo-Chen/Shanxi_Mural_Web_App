@@ -21,6 +21,8 @@ interface DraggableCanvasProps {
   isMobile?: boolean;
   /** 仅展示与这些寺庙相关的连接线；单寺时通常为空 */
   activeTempleIds?: string[] | null;
+  focusingId?: string | null;
+  onOutlineComplete?: (cardId: string) => void;
 }
 
 export default function DraggableCanvas({
@@ -37,6 +39,8 @@ export default function DraggableCanvas({
   parallaxOffset,
   isMobile = false,
   activeTempleIds = null,
+  focusingId = null,
+  onOutlineComplete,
 }: DraggableCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const anchors = useMemo(() => scaleAnchors(isMobile), [isMobile]);
@@ -110,6 +114,13 @@ export default function DraggableCanvas({
             priority={card.priority === "high"}
             introVisible={introVisible}
             isDragging={isDragging}
+            focusing={focusingId === card.id}
+            muted={Boolean(
+              (focusingId || selectedCardId) &&
+                focusingId !== card.id &&
+                selectedCardId !== card.id
+            )}
+            onOutlineComplete={onOutlineComplete}
           />
         ))}
       </div>

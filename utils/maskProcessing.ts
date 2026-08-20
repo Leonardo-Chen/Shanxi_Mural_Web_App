@@ -42,8 +42,8 @@ export async function buildRegionIdMap(
 
   for (let i = coloringRegions.length - 1; i >= 0; i--) {
     const region = coloringRegions[i];
-    if (region.maskImage) {
-      const img = await loadImage(region.maskImage);
+    if (region.maskUrl) {
+      const img = await loadImage(region.maskUrl);
       ctx.drawImage(img, 0, 0, width, height);
       continue;
     }

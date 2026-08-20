@@ -16,7 +16,6 @@ export const templePrefecture: Record<string, string> = {
   yanshan: "忻州",
   foguang: "忻州",
   duofu: "太原",
-  buer: "太原",
   longquan: "太原",
   huayan: "大同",
   shanhua: "大同",
@@ -26,7 +25,7 @@ export const templePrefecture: Record<string, string> = {
   yunlin: "晋中",
   yongning: "运城",
   yonglegong: "运城",
-  shuishen: "临汾",
+  shuishen: "大同",
 };
 
 /** 有寺庙分布的地市集合 */

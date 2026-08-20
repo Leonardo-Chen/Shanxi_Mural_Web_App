@@ -2,6 +2,7 @@
 
 import type { ScoreResult } from "@/utils/colorScoring";
 import { coloringArtwork } from "@/data/coloringArtwork";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface ScoreRevealProps {
   score: ScoreResult;
@@ -14,6 +15,7 @@ export default function ScoreReveal({
   onViewComparison,
   onContinue,
 }: ScoreRevealProps) {
+  const { t } = useLocale();
   const lowCompletion =
     score.completion < coloringArtwork.completionThreshold * 100;
 
@@ -22,14 +24,19 @@ export default function ScoreReveal({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-sans text-[10px] tracking-wider text-stone">
-            你的壁上之色
+            {t("color.yourColor")}
           </p>
           <p className="mt-1 font-serif text-3xl text-cinnabar">
             {score.finalScore}
-            <span className="ml-1 font-sans text-sm text-stone">分</span>
+            <span className="ml-1 font-sans text-sm text-stone">
+              {t("color.scoreUnit")}
+            </span>
           </p>
           <p className="mt-1 font-sans text-[11px] text-ink/65">
-            色彩相似度 {score.colorSimilarity} · 完成度 {score.completion}%
+            {t("color.similarityLine", {
+              sim: score.colorSimilarity,
+              pct: score.completion,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -38,24 +45,30 @@ export default function ScoreReveal({
             onClick={onContinue}
             className="rounded-sm border border-ink/15 px-4 py-2 font-sans text-[11px] tracking-wide text-ink hover:border-ink/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
           >
-            继续上色
+            {t("color.keepColoring")}
           </button>
           <button
             type="button"
             onClick={onViewComparison}
             className="rounded-sm bg-cinnabar px-4 py-2 font-sans text-[11px] tracking-wide text-rice hover:bg-cinnabar/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
           >
-            查看对比
+            {t("color.seeCompare")}
           </button>
         </div>
       </div>
       {lowCompletion && (
         <p className="mt-2 font-sans text-[10px] text-ochre">
-          当前作品尚未完成，评分仅供参考。
+          {t("color.scoreNote")}
         </p>
       )}
       <p className="mt-2 max-w-xl font-serif text-xs leading-relaxed text-ink/70">
-        {score.evaluation}
+        {t(
+          score.colorSimilarity >= 75
+            ? "color.evalHigh"
+            : score.colorSimilarity >= 50
+              ? "color.evalMid"
+              : "color.evalLow"
+        )}
       </p>
     </div>
   );

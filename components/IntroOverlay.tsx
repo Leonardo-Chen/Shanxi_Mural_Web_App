@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface IntroOverlayProps {
   visible: boolean;
@@ -11,6 +12,7 @@ interface IntroOverlayProps {
 
 export default function IntroOverlay({ visible, onStart }: IntroOverlayProps) {
   const reducedMotion = useReducedMotion();
+  const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -58,28 +60,28 @@ export default function IntroOverlay({ visible, onStart }: IntroOverlayProps) {
       ref={containerRef}
       className="fixed inset-0 z-50 flex items-center justify-center"
       role="dialog"
-      aria-label="欢迎"
+      aria-label={t("intro.aria")}
     >
       <div className="relative z-10 mx-auto max-w-lg px-6 text-center">
         <h1
           ref={titleRef}
           className="font-serif text-4xl tracking-wide text-ink md:text-5xl"
         >
-          看见壁上山西
+          {t("brand.siteName")}
         </h1>
         <p
           ref={subtitleRef}
           className="mt-3 font-sans text-xs tracking-[0.35em] text-stone"
         >
-          MURALS OF SHANXI
+          {t("brand.siteSubtitle")}
         </p>
         <p
           ref={descRef}
           className="mx-auto mt-8 max-w-sm font-serif text-base leading-relaxed text-ink/80"
         >
-          在人物、色彩与残存的故事之间，
+          {t("intro.desc1")}
           <br />
-          重新认识山西寺观壁画。
+          {t("intro.desc2")}
         </p>
         <button
           ref={btnRef}
@@ -87,13 +89,13 @@ export default function IntroOverlay({ visible, onStart }: IntroOverlayProps) {
           onClick={onStart}
           className="mt-10 rounded-sm bg-cinnabar px-10 py-3 font-sans text-sm tracking-wider text-rice transition-colors hover:bg-cinnabar/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-offset-2 focus-visible:ring-offset-parchment"
         >
-          开始探索
+          {t("cover.start")}
         </button>
         <p
           ref={hintRef}
           className="mt-8 font-sans text-xs tracking-wide text-ink/45"
         >
-          拖动画面，寻找壁画中的故事
+          {t("intro.hint")}
         </p>
       </div>
     </div>

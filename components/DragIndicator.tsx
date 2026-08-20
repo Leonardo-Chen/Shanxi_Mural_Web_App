@@ -1,10 +1,14 @@
 "use client";
 
+import { useLocale } from "@/components/i18n/LocaleProvider";
+
 interface DragIndicatorProps {
   visible: boolean;
 }
 
 export default function DragIndicator({ visible }: DragIndicatorProps) {
+  const { t } = useLocale();
+
   if (!visible) return null;
 
   return (
@@ -13,9 +17,9 @@ export default function DragIndicator({ visible }: DragIndicatorProps) {
       aria-hidden="true"
     >
       <p className="font-sans text-[9px] tracking-[0.3em] text-ink/35">
-        DRAG TO EXPLORE
+        {t("home.dragHint")}
       </p>
-      <p className="mt-0.5 font-sans text-[10px] text-ink/45">拖动探索</p>
+      <p className="mt-0.5 font-sans text-[10px] text-ink/45">{t("home.drag")}</p>
     </div>
   );
 }

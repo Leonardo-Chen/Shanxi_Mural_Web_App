@@ -1,6 +1,8 @@
 "use client";
 
 import { coloringPalette } from "@/data/coloringPalette";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { locPigment } from "@/lib/i18n/localize";
 
 interface ColorPaletteProps {
   selectedId: string;
@@ -17,11 +19,12 @@ export default function ColorPalette({
   onCustomChange,
   compact = false,
 }: ColorPaletteProps) {
+  const { locale, t } = useLocale();
   return (
     <div
       className={`flex flex-col gap-1.5 ${compact ? "flex-row overflow-x-auto pb-1" : ""}`}
       role="listbox"
-      aria-label="传统色板"
+      aria-label={t("color.palette")}
     >
       {coloringPalette.map((c) => {
         const active = selectedId === c.id;
@@ -31,29 +34,31 @@ export default function ColorPalette({
             type="button"
             role="option"
             aria-selected={active}
-            aria-label={`${c.name} ${c.hex}`}
-            title={`${c.source} · ${c.hex}`}
-            onClick={() => onSelect(c.id, c.hex)}
+            aria-label={`${locPigment(locale, c.id, c.nameZh)} ${c.value}`}
+            title={`${locPigment(locale, c.id, c.nameZh)} · ${c.value}`}
+            onClick={() => onSelect(c.id, c.value)}
             className={`group flex items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar ${
               compact ? "shrink-0" : "w-full"
             } ${active ? "bg-rice/90 ring-1 ring-ink/15" : "hover:bg-rice/50"}`}
           >
             <span
               className="h-5 w-5 shrink-0 rounded-full border border-ink/10"
-              style={{ backgroundColor: c.hex }}
+              style={{ backgroundColor: c.value }}
             />
             {!compact && (
               <span className="min-w-0 flex-1">
                 <span className="block font-sans text-[11px] text-ink">
-                  {c.name}
+                  {locPigment(locale, c.id, c.nameZh)}
                 </span>
                 <span className="block font-sans text-[9px] uppercase tracking-wider text-stone/70">
-                  {c.hex}
+                  {c.value}
                 </span>
               </span>
             )}
             {compact && (
-              <span className="font-sans text-[10px] text-ink">{c.name}</span>
+              <span className="font-sans text-[10px] text-ink">
+                {locPigment(locale, c.id, c.nameZh)}
+              </span>
             )}
           </button>
         );
@@ -71,10 +76,10 @@ export default function ColorPalette({
               onSelect("custom", e.target.value);
             }}
             className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0"
-            aria-label="自选颜色"
+            aria-label={t("color.custom")}
           />
           {!compact && (
-            <span className="font-sans text-[10px] text-stone">自选颜色</span>
+            <span className="font-sans text-[10px] text-stone">{t("color.custom")}</span>
           )}
         </label>
       </div>

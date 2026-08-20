@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#EEE8DC"/>
+  <rect x="48" y="48" width="1104" height="704" fill="none" stroke="#8B352E" stroke-width="2"/>
+  <rect x="72" y="72" width="1056" height="656" fill="#D8D0C2"/>
+  <text x="600" y="280" text-anchor="middle" font-family="serif" font-size="42" fill="#3E6264">&#x5E7F;&#x7075;&#x6C34;&#x795E;&#x5802;</text>
+  <text x="600" y="360" text-anchor="middle" font-family="serif" font-size="56" fill="#8B352E">&#x9F99;&#x6BCD;&#x51FA;&#x5BAB;&#x964D;&#x96E8;&#x56FE;</text>
+  <text x="600" y="460" text-anchor="middle" font-family="sans-serif" font-size="20" letter-spacing="8" fill="#26241F">SHANXI TEMPLE MURALS</text>
+  <text x="600" y="640" text-anchor="middle" font-family="serif" font-size="22" fill="#3E6264">&#x770B;&#x89C1;&#x58C1;&#x4E0A;&#x5C71;&#x897F;</text>
+</svg>

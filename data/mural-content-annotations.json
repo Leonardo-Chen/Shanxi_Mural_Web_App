@@ -1,0 +1,1640 @@
+{
+  "schemaVersion": "2.0.0",
+  "annotationScope": "textual-provenance",
+  "stats": {
+    "restoredMurals": 29,
+    "uniqueElements": 94,
+    "groups": [
+      {
+        "id": "guangling-water-god-temple",
+        "name": "广灵水神堂圣母殿",
+        "murals": 2,
+        "elements": 60
+      },
+      {
+        "id": "duofu-temple",
+        "name": "太原多福寺",
+        "murals": 10,
+        "elements": 22
+      },
+      {
+        "id": "yongle-palace",
+        "name": "芮城永乐宫",
+        "murals": 17,
+        "elements": 12
+      }
+    ]
+  },
+  "visibilityRules": {
+    "exploration": "显示元素名称和简短介绍；隐藏来源壁画题名、地点和故事。",
+    "quiz": "用户选择壁画前继续隐藏来源信息。",
+    "correctAnswer": "答对后显示来源壁画题名、寺观位置、详细故事和观看顺序。",
+    "archive": "资料库模式可直接显示全部信息。"
+  },
+  "murals": [
+    {
+      "id": "lm-m01",
+      "groupId": "guangling-water-god-temple",
+      "temple": "广灵水神堂",
+      "hall": "圣母殿东壁",
+      "dynasty": "清代",
+      "title": "龙母出宫降雨图",
+      "assetFile": "出宫图.png",
+      "summary": "百姓祈雨后，九江圣母率雷公、电母、风伯、雨师、云将、文官、水族与仪仗神众出宫布雨，表现降雨队伍从神界进入人间。",
+      "displayTitle": "《龙母出宫降雨图》",
+      "location": "山西省大同市广灵县壶泉镇壶山水神堂，圣母殿东壁",
+      "detailedDescription": "画面以九江圣母出宫布雨为中心，上部和中部展开庞大的神界仪仗：龙母由侍女、水晶宫陈设和车乘簇拥，雷公、四目量雨神、持镜女神、风袋神祇、骑龙神将、文官、水族与山野神祇依次出动。下部安排骑驴、骑马、挑担、打伞和牲畜赶路的人间场景，把天上的施雨行动与地面的生活反应连接起来。它不是单纯的神仙队列，而是一幅从祈雨、出宫到行云布雨的连续叙事。",
+      "readingGuide": [
+        "先看龙母与水晶宫仪仗",
+        "再辨认雷、电、风、雨等天气神",
+        "最后观察下方百姓与牲畜如何应对降雨"
+      ],
+      "locationPrecision": "殿宇和东壁位置明确；部分随从神祇身份为候选名称。"
+    },
+    {
+      "id": "lm-m02",
+      "groupId": "guangling-water-god-temple",
+      "temple": "广灵水神堂",
+      "hall": "圣母殿西壁",
+      "dynasty": "清代",
+      "title": "雨后回宫图",
+      "assetFile": "回宫图.jpg",
+      "summary": "降雨完成后，龙母与天气神班、龙王、水族部众和仪仗队伍返回水晶宫；画面同时表现雨后农作、归途和丰收。",
+      "displayTitle": "《雨后回宫图》",
+      "location": "山西省大同市广灵县壶泉镇壶山水神堂，圣母殿西壁",
+      "detailedDescription": "这幅壁画描绘布雨结束后的归程。龙母与骑马神祇、雷公、量雨神、书判、虹童、水族和仪仗队伍返回水晶宫，人物状态较出宫时安定舒缓。画面同时加入雨后彩虹、农民收获搬运、行人归村等生活细节，说明降雨已经惠及土地和百姓。被押解的异形人物可能与旱魃观念有关，但身份仍需题榜或图录进一步确认。",
+      "readingGuide": [
+        "先找归宫的龙母和仪仗",
+        "观察雨后彩虹及收束天气的神祇",
+        "最后阅读农作、搬运和村落归途"
+      ],
+      "locationPrecision": "殿宇和西壁位置明确；旱魃、风姨、电母等个别身份保留候选状态。"
+    },
+    {
+      "id": "df-m01",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第五十二：魔军害佛",
+      "assetFile": "01_第五十二_魔军害佛.png",
+      "summary": "魔王率军众以武器、恐吓和混乱阻止佛陀成道，佛陀安坐不动，以静制动。",
+      "displayTitle": "第五十二《魔军害佛》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿东、西、北三壁佛传图中的第五十二铺",
+      "detailedDescription": "悉达多在菩提树下即将觉悟时，魔王率领多臂魔王、持枪天魔、飞行天魔、兽首小魔等军众发动围攻，以武器、恐吓和混乱动摇他的意志。佛陀居于画面稳定的中心，结跏趺坐、寂然不动，周围魔众则以夸张姿态和翻卷衣带形成激烈旋涡。画面用“中央的静”对抗“外围的动”，表达觉悟者已经超越恐惧、欲望和诱惑。",
+      "readingGuide": [
+        "先看中央静坐的佛陀",
+        "再沿外围辨认不同魔众与兵器",
+        "比较佛陀的稳定轮廓与魔军的旋转动势"
+      ],
+      "locationPrecision": "题名和编号明确；当前照片未记录具体东、西或北壁坐标。"
+    },
+    {
+      "id": "df-m02",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第四十三：雪山入定",
+      "assetFile": "02_第四十三_雪山入定.png",
+      "summary": "太子离开王宫后进入雪山修行，在松树、山石与云气之间禅坐入定。",
+      "displayTitle": "第四十三《雪山入定》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第四十三铺",
+      "detailedDescription": "太子离开王宫后进入山林修行，在层峦雪峰和古松之间禅坐入定。人物在辽阔山景中显得相对微小，强调远离宫廷、独自面对生死问题的孤寂。山石、树木、云气与人物并非背景装饰，而是共同构成修行状态：外部环境越冷寂，内心的专注越突出。",
+      "readingGuide": [
+        "先从雪峰和古松理解环境",
+        "寻找山景中的入定人物",
+        "观察人物尺度如何强化孤寂感"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m03",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第六十四：火龙魔难",
+      "assetFile": "03_第六十四_火龙魔难.png",
+      "summary": "火龙喷火袭击借宿的佛陀，佛陀以禅定与神力保持平静并降伏火龙。",
+      "displayTitle": "第六十四《火龙魔难》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第六十四铺",
+      "detailedDescription": "佛陀外出弘法途中寻找借宿之处，却进入火龙盘踞的场所。火龙以盘旋身体和喷涌火焰形成威胁，佛陀仍保持禅坐和镇定，并最终以佛法和神力降伏暴烈之龙。火焰、龙身与飘动云气构成强烈运动，安坐的佛陀则形成不动的视觉中心，象征智慧制服嗔怒与无明。",
+      "readingGuide": [
+        "先识别喷火盘旋的火龙",
+        "再看佛陀面对攻击时的姿态",
+        "比较火焰动势与佛陀稳定结构"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m04",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第十五：入学算法",
+      "assetFile": "04_第十五_入学算法.png",
+      "summary": "少年悉达多进入中国式宫廷学堂，学习典籍、书写和计算，表现其聪慧。",
+      "displayTitle": "第十五《入学算法》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第十五铺",
+      "detailedDescription": "少年悉达多进入学堂，向老师学习典籍、书写和计算。印度佛传被明代画师转译成中国宫廷书斋：教师端坐，学生在书案前学习，书卷、算筹板、笔砚和栏杆门窗都采用中国式形制。故事表现太子的聪慧，也让观众从建筑、家具和学习器物中看到明代社会生活。",
+      "readingGuide": [
+        "先看教师与学生的主次关系",
+        "辨认书册、算筹和笔砚",
+        "观察佛传如何被转化为明代中国学堂"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m05",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第十八：与南天国斗武艺",
+      "assetFile": "05_第十八_与南天国斗武艺.png",
+      "summary": "青年太子与南天国武士较量，通过骑马、追逐和队列运动表现其武艺。",
+      "displayTitle": "第十八《与南天国斗武艺》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第十八铺",
+      "detailedDescription": "青年太子与南天国武士进行武艺较量。绿袍、红袍和蓝袍骑士分别驾驭不同颜色的战马，追逐、回身和疾驰形成连续动作。画面借助马腿、衣带、兵器与云气的方向制造速度感，说明太子不仅具有智慧，也拥有超常的身体能力；这种能力后来被他主动舍弃，反衬其出家选择。",
+      "readingGuide": [
+        "沿三组骑士的运动方向阅读",
+        "比较服色与马匹颜色",
+        "注意衣带、马腿和云气制造的速度感"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m06",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第六十八：罗睺罗诞生",
+      "assetFile": "06_第六十八_罗睺罗诞生.png",
+      "summary": "耶输陀罗夫人在宫中生下罗睺罗，侍女持器物往来照料。",
+      "displayTitle": "第六十八《罗睺罗诞生》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第六十八铺",
+      "detailedDescription": "耶输陀罗夫人在宫中生下罗睺罗，侍女捧盘、持壶或携带器物往来照料。中国式殿堂、青绿屋顶和宫廷服饰将佛传改写成明代观众熟悉的生活场景。相关佛传还包含罗睺罗久住母胎、王族产生疑问以及耶输陀罗自证清白的内容；本铺主要集中表现诞生后的宫廷气氛。",
+      "readingGuide": [
+        "先找宫中端坐的耶输陀罗",
+        "观察侍女手中的生活器物",
+        "阅读建筑如何建立宫廷空间"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m07",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第十七：走象奔马",
+      "assetFile": "07_第十七_走象奔马.png",
+      "summary": "太子驾驭白象和奔马，展示青年时期的力量、胆识与驾驭能力。",
+      "displayTitle": "第十七《走象奔马》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第十七铺",
+      "detailedDescription": "太子在白象和奔马之间展示驾驭能力与胆识。象体厚重稳定，奔马则以伸展四肢形成高速运动，两种动物共同衬托太子的非凡能力。这一铺与后续武艺较量相连，构成太子成长阶段的“能力证明”，也为他后来放弃王位、力量与荣华形成叙事反差。",
+      "readingGuide": [
+        "先比较白象与奔马的体量",
+        "观察人物如何站立或驾驭动物",
+        "把本铺与下一阶段的武艺较量联系起来"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m08",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第三十三：问梵王",
+      "assetFile": "08_第三十三_问梵王.png",
+      "summary": "太子因老病死而思考轮回与解脱，向梵王询问生死问题并坚定求道之心。",
+      "displayTitle": "第三十三《问梵王》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第三十三铺",
+      "detailedDescription": "太子看到老、病、死等人生现象后开始思考轮回和解脱，来到宫殿向梵王请问。梵王端坐于殿中，太子以恭敬姿态发问，周围侍臣和武士建立君臣式礼仪空间。画面表现的不是激烈事件，而是一次改变人生方向的宗教对话：太子由王宫生活转向出家求道。",
+      "readingGuide": [
+        "先辨认殿中端坐的梵王",
+        "观察太子发问时的手势",
+        "借君臣距离理解问答双方关系"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m09",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第十一：天人献香",
+      "assetFile": "09_第十一_天人献香.png",
+      "summary": "天人乘云向年幼的悉达多献香供养，预示其不同寻常的神圣身份。",
+      "displayTitle": "第十一《天人献香》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第十一铺",
+      "detailedDescription": "悉达多尚年幼时，天人乘云降临，手持香供和托盘向太子献礼。上方的云端神众与下方的宫廷人物形成天地两层，说明这不是普通的王子诞生庆典，而是诸天主动确认其神圣身份的祥瑞。飘带、云座和供器是识别这一故事的重要视觉线索。",
+      "readingGuide": [
+        "先区分天界和人间两层",
+        "寻找献香天人与捧盘天女",
+        "用云座、飘带和供器判断祥瑞性质"
+      ],
+      "locationPrecision": "题名和编号明确；具体墙面铺位待图录坐标核对。"
+    },
+    {
+      "id": "df-m10",
+      "groupId": "duofu-temple",
+      "temple": "太原多福寺",
+      "hall": "大雄宝殿佛传壁画",
+      "dynasty": "明代",
+      "title": "第二十九、第三十一：辞别与求道",
+      "assetFile": "10_第二十九及第三十一_辞别与求道.png",
+      "summary": "太子辞别耶输陀罗，并向车匿表达厌离浮华、出家求道的决定。",
+      "displayTitle": "第二十九《辞别耶输夫人》、第三十一《车匿敬问》",
+      "location": "山西省太原市尖草坪区崛围山多福寺，大雄宝殿佛传图第二十九与第三十一铺",
+      "detailedDescription": "照片同时收入两个相邻故事。前一铺中，太子决定舍弃王族生活，在宫苑中向妻子耶输陀罗告别；人物对视和克制手势表现家庭离别。后一铺中，太子向车匿说明自己厌离浮华、希望求道的想法，车匿恭敬发问。两铺共同表现他从内心决定到正式离宫前的关键转折。",
+      "readingGuide": [
+        "先区分照片中的两个故事框",
+        "在辞别场景中看夫妻对视",
+        "在车匿敬问场景中看主从手势"
+      ],
+      "locationPrecision": "两个题名和编号明确；照片只拍到同一层的两铺奇数故事。"
+    },
+    {
+      "id": "yl-m01",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部01：诸天仙班汇聚",
+      "assetFile": "01.jpg",
+      "summary": "三界诸神依品秩列队朝拜元始天尊，表现天庭朝会与宇宙秩序。",
+      "displayTitle": "《朝元图》诸天仙班局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部01",
+      "detailedDescription": "这一局部展示大量道教神祇朝向共同目标列班而行。人物冠服、圆光、笏板和仪仗各不相同，却通过相近的朝向和层叠队列汇成统一的朝会秩序。《朝元图》整体表现三界诸神朝拜元始天尊，本张应理解为庞大天庭队伍的一段，而不是一个独立故事。",
+      "readingGuide": [
+        "顺人物共同朝向阅读",
+        "比较圆光、冠服与笏板",
+        "把局部放回诸神朝元的整体结构"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；精确墙面方位需原始全景图序号核对。"
+    },
+    {
+      "id": "yl-m02",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部02：帝君与供案",
+      "assetFile": "02.jpg",
+      "summary": "帝君级主尊与供案、侍臣共同构成天庭朝会的核心礼仪区域。",
+      "displayTitle": "《朝元图》帝君与供案局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部02",
+      "detailedDescription": "画面以帝君级主尊、宝座和供案构成稳定核心，周围仙官、侍从和仪仗形成礼仪性的包围。供案上的器物不仅是装饰，也标示朝会中的祭祀和奉献关系。由于照片脱离原墙坐标，主尊不宜仅凭冠服强行定名，但其高等级身份可以从尺度、宝座、圆光和侍从数量判断。",
+      "readingGuide": [
+        "先看宝座和供案形成的中心",
+        "再观察侍从与主尊的尺度差",
+        "用冠服、圆光和仪仗判断等级"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；主尊精确身份和墙面方位待图录核对。"
+    },
+    {
+      "id": "yl-m03",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部03：冕旒主神与侍臣",
+      "assetFile": "03.jpg",
+      "summary": "帝后级主尊由仙官侍立，象征天界统治、等级与礼制。",
+      "displayTitle": "《朝元图》冕旒主神与侍臣局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部03",
+      "detailedDescription": "中央冕旒主神以正面或微侧姿态站立，侍臣分列周围。冕冠、礼服、尺度和从属人物共同说明其帝后级身份。这一局部的重点不是人物行动，而是通过静态站位、服饰和层级关系把道教天庭组织成类似人间朝廷的秩序。",
+      "readingGuide": [
+        "先识别冕冠主神",
+        "比较主神与侍臣的尺度",
+        "观察站位如何形成天庭等级"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；具体神名和墙面方位待图录核对。"
+    },
+    {
+      "id": "yl-m04",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部04：华盖主神",
+      "assetFile": "04.jpg",
+      "summary": "华盖、圆光与侍从共同强调主尊在天庭朝会中的崇高身份。",
+      "displayTitle": "《朝元图》华盖主神局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部04",
+      "detailedDescription": "主尊位于大型华盖和圆光之下，周围由仙官、玉女和仪仗衬托。华盖在画面中形成类似建筑穹顶的视觉中心，把人物从密集神众中区分出来。主神保持庄严静态，而侍从、飘带和器物形成细微流动，体现朝会中的权威与秩序。",
+      "readingGuide": [
+        "先用华盖定位主尊",
+        "观察圆光、冠服与侍从",
+        "比较主尊静态与周围飘带动势"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；具体神名和墙面方位待图录核对。"
+    },
+    {
+      "id": "yl-m05",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部05：星官仙曹列班",
+      "assetFile": "05.jpg",
+      "summary": "星官、仙曹和侍从按等级列班，共同参与朝元大典。",
+      "displayTitle": "《朝元图》星官仙曹列班局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部05",
+      "detailedDescription": "画面密集排列星官、仙曹和随侍神众，人物以笏板、冠帽、圆光和不同服色区分职属。它类似一段被放大的天庭官僚队伍：每个人物都有独立表情和动作，又共同服从朝元的总体方向。观看重点是从“群像”中辨认细微个体差异。",
+      "readingGuide": [
+        "先看整体队列方向",
+        "再比较不同冠帽和笏板",
+        "寻找群像中的表情与小动作"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；精确墙面方位待原始全景核对。"
+    },
+    {
+      "id": "yl-m06",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部06：仙山与仪仗",
+      "assetFile": "06.jpg",
+      "summary": "仙山、神众与仪仗器物构成朝元队伍中的礼仪和空间标志。",
+      "displayTitle": "《朝元图》仙山与仪仗局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部06",
+      "detailedDescription": "这一局部以绘有海上仙山的大型仪仗扇为显著标志，周围神众和侍从共同前行。扇面中的山水把蓬莱式仙境压缩进一件礼仪器物，既标示神仙世界，也丰富队伍层次。观看时可把仪仗看作天庭身份系统，而不仅是装饰图案。",
+      "readingGuide": [
+        "先找大型仙山仪仗扇",
+        "观察扇面内部的山水空间",
+        "再看持扇者与周围神众的关系"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；精确墙面方位待原始全景核对。"
+    },
+    {
+      "id": "yl-m07",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部07：奉宝玉女",
+      "assetFile": "07.jpg",
+      "summary": "玉女捧持宝物或供器，在天庭礼仪中侍奉主尊。",
+      "displayTitle": "《朝元图》奉宝玉女局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部07",
+      "detailedDescription": "画面中心的女仙官双手奉持带火焰形装饰的供器，长裙、披帛和冠饰形成优雅曲线。她属于朝元礼仪中的奉宝玉女或侍奉神女，其动作重点是“呈献”而非行走。人物的手势、所持器物和朝向共同说明她与主尊之间的礼仪关系。",
+      "readingGuide": [
+        "先看双手奉持的供器",
+        "沿披帛和衣褶观察姿态",
+        "用人物朝向推断她所侍奉的主尊"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；具体玉女名称待图录核对。"
+    },
+    {
+      "id": "yl-m08",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部08：天丁力士",
+      "assetFile": "08.jpg",
+      "summary": "天庭武装护卫负责开道、守卫和驱邪，形成朝会中的威仪。",
+      "displayTitle": "《朝元图》天丁力士局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部08",
+      "detailedDescription": "两名持刀或持杖的护卫并立，体格、兵器、短衣和紧张姿态与文官、玉女明显不同。他们属于天庭武装护卫系统，承担开道、守卫和驱邪功能。人物之间的遮挡和交错兵器产生紧密动作关系，因此提取时保留为双人组合。",
+      "readingGuide": [
+        "先看兵器和武装服饰",
+        "比较两名护卫的转身方向",
+        "理解其在朝元队伍中的护卫作用"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；具体神名和墙面方位待图录核对。"
+    },
+    {
+      "id": "yl-m09",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部09：圆光女仙官",
+      "assetFile": "09.jpg",
+      "summary": "带圆光的星辰女神或女仙官参与朝元；离开原墙位置后不强行细定神名。",
+      "displayTitle": "《朝元图》圆光女仙官局部",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》局部09",
+      "detailedDescription": "女神以大型圆光、华丽冠饰和层叠礼服从周围人物中突出。她可能属于星辰女神或高等级女仙官，但照片没有保留可用于精确定位的完整墙面关系，因此标注采用描述性名称。观看重点是圆光、冠服与云气如何建立神圣身份。",
+      "readingGuide": [
+        "先用圆光确定视觉中心",
+        "观察冠饰和礼服等级",
+        "不要在缺少墙位时强行确定神名"
+      ],
+      "locationPrecision": "三清殿及《朝元图》明确；精确身份和墙面方位待核。"
+    },
+    {
+      "id": "yl-m10",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部10：青龙星君",
+      "assetFile": "10.jpg",
+      "summary": "东方守护神青龙星君持剑镇守道场，画面中伴随青龙。",
+      "displayTitle": "《朝元图》青龙星君",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》青龙星君局部",
+      "detailedDescription": "武装神将持剑站立，脚边或身侧伴随青龙形象，是朝元队伍中的东方守护神。铠甲、佩剑、飘带和龙身共同构成斜向动势，使人物兼具行进感和镇守感。青龙与白虎通常成对出现，分别守护东方和西方，也是观众识别方位护法最直接的图像线索。",
+      "readingGuide": [
+        "先找神将身边的青龙",
+        "观察佩剑与铠甲",
+        "与白虎星君局部成对理解"
+      ],
+      "locationPrecision": "青龙属性较明确；精确墙面坐标待原始全景核对。"
+    },
+    {
+      "id": "yl-m11",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "三清殿《朝元图》",
+      "dynasty": "元代",
+      "title": "朝元图局部11：白虎星君",
+      "assetFile": "11.jpg",
+      "summary": "西方守护神白虎星君以武将形象镇守道场，画面中伴随白虎。",
+      "displayTitle": "《朝元图》白虎星君",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，三清殿内壁《朝元图》白虎星君局部",
+      "detailedDescription": "红面武装神将持旗或兵器站立，身旁伴随白虎，是朝元队伍中的西方守护神。白虎、铠甲与旗幡强化威武和辟邪意味。它与青龙星君共同构成方向性的护法组合，也是把抽象方位转化为人物和动物形象的典型方式。",
+      "readingGuide": [
+        "先找神将身边的白虎",
+        "观察旗幡、铠甲和红面特征",
+        "与青龙星君局部成对理解"
+      ],
+      "locationPrecision": "白虎属性较明确；精确墙面坐标待原始全景核对。"
+    },
+    {
+      "id": "yl-m12",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "吕祖显化组图：鼎州货墨、赵相公、赐药狄青、怀孕师尼",
+      "assetFile": "12.jpg",
+      "summary": "四个相邻故事组成的整体画面，讲吕洞宾在人间卖墨、试人、赐药与化身考验慈悲。",
+      "displayTitle": "《神化鼎州货墨》《神化赵相公》《神化赐药狄青》《神化怀孕师尼》组图",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿内壁《纯阳帝君神游显化图》相邻故事组",
+      "detailedDescription": "这张宽幅照片同时收入四个相邻故事。吕洞宾有时化作普通卖墨道人，在市井中通过题诗或神迹显明身份；有时用看似寻常的草鞋和登仙之说试探赵相公能否识得仙缘；他也以赐药帮助狄青解除军旅困厄，并化作临产尼姑求宿，以突然消失的显化考验寺观是否真正具有慈悲。画面把市井、寺院、人物对话和云上神众连接在同一连续空间。",
+      "readingGuide": [
+        "先按题榜分清四个故事区",
+        "观察普通人形象与仙人显化之间的转换",
+        "把橙色祥云神众视为超自然显现线索"
+      ],
+      "locationPrecision": "纯阳殿与四个故事题名明确；本照片为相邻故事的宽幅组合。"
+    },
+    {
+      "id": "yl-m13",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "瑞应永乐",
+      "assetFile": "13.jpg",
+      "summary": "吕洞宾诞生于永乐，白鹤飞临、异香满室；院落中表现家人、婴儿和来访宾客。",
+      "displayTitle": "《瑞应永乐》",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿《纯阳帝君神游显化图》中的《瑞应永乐》",
+      "detailedDescription": "故事表现吕洞宾在永乐出生时的祥瑞。院落中有人照料产妇和婴儿，也有宾客骑马来访；天空或屋宇之间出现白鹤，传说异香满室。画师用中国式宅院、庭门、树木和日常人物把神仙诞生落入真实生活空间，使观众先看到一场家庭事件，再从白鹤和异香等线索理解其超凡身份。",
+      "readingGuide": [
+        "先沿院门进入内院",
+        "寻找婴儿、家人和来访宾客",
+        "最后通过白鹤等祥瑞确认吕祖诞生主题"
+      ],
+      "locationPrecision": "故事题名明确；具体墙面坐标待纯阳殿全景图核对。"
+    },
+    {
+      "id": "yl-m14",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "神化婺州举塔",
+      "assetFile": "14.jpg",
+      "summary": "吕洞宾求宿被拒后以神力令塔离地或断开，使僧众醒悟，随后复原。",
+      "displayTitle": "《神化婺州举塔》",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿《纯阳帝君神游显化图》中的《神化婺州举塔》",
+      "detailedDescription": "吕洞宾日暮到婺州寺院请求借宿，却被知客僧拒绝或驱逐。为了警醒只守形式而缺乏慈悲的僧人，他施展神力，使寺塔离地、举起或断开；僧众惊惧悔悟后，塔又恢复原状。画面以高大的青绿重楼、寺院回廊和仰视人物建立奇观，建筑本身就是故事的主角。",
+      "readingGuide": [
+        "先看占据画面中心的青绿塔楼",
+        "再找寺僧与吕祖的位置",
+        "通过人物仰视和塔体变化理解神迹"
+      ],
+      "locationPrecision": "故事题名明确；具体墙面坐标待纯阳殿全景图核对。"
+    },
+    {
+      "id": "yl-m15",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "赐药狄青、怀孕师尼局部",
+      "assetFile": "15.jpg",
+      "summary": "一段表现吕祖赐药解厄，另一段表现其化身临产尼姑试探寺观是否真正具有慈悲心。",
+      "displayTitle": "《神化赐药狄青》《神化怀孕师尼》",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿《纯阳帝君神游显化图》下排相邻故事局部",
+      "detailedDescription": "照片主要拍摄两段相邻显化故事。一段讲狄青南征遇到困厄，得到吕祖赐药或指点而化险为夷；另一段讲吕祖化作即将临产的尼姑请求留宿，却遭寺观拒绝，夜间出现婴儿啼哭，次日母子忽然消失，众人才明白这是仙人对慈悲心的试探。火焰形宝舆和人群围观是本张最突出的视觉元素。",
+      "readingGuide": [
+        "先按题榜区分左右故事",
+        "寻找赐药、求宿和围观动作",
+        "把火焰宝舆作为定位该照片的显著视觉标志"
+      ],
+      "locationPrecision": "两个相邻题名的归属较明确；宝舆对应的具体叙事细节仍宜结合高清题榜复核。"
+    },
+    {
+      "id": "yl-m16",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "鼎州货墨、赵相公局部",
+      "assetFile": "16.jpg",
+      "summary": "吕祖化作普通道人卖墨，并以草鞋和登仙之说试探赵相公能否识得仙缘。",
+      "displayTitle": "《神化鼎州货墨》《神化赵相公》",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿《纯阳帝君神游显化图》上排相邻故事局部",
+      "detailedDescription": "前一故事中，吕洞宾化作衣着普通的道人在鼎州卖墨，人们起初以外貌和价格判断他，后来才从题诗或神迹认出仙人。后一故事中，他拿一只草鞋索价十金，声称穿上便可登仙，以极普通的物件试探赵相公能否识得真正的仙缘。壁画将仙人考验置于市井和日常交往之中。",
+      "readingGuide": [
+        "先区分卖墨和草鞋两个叙事中心",
+        "观察人物如何面对普通道人",
+        "理解吕祖用日常物件试探识见的主题"
+      ],
+      "locationPrecision": "两个故事题名较明确；具体墙面坐标待纯阳殿全景图核对。"
+    },
+    {
+      "id": "yl-m17",
+      "groupId": "yongle-palace",
+      "temple": "芮城永乐宫",
+      "hall": "纯阳殿《纯阳帝君神游显化图》",
+      "dynasty": "元代",
+      "title": "救刘氏病、游戏罗浮",
+      "assetFile": "17.jpg",
+      "summary": "吕祖以五色石治愈刘氏跛病，又在罗浮山以酒治道童眼疾并绘壁画显化。",
+      "displayTitle": "《救刘氏病》《游戏罗浮》",
+      "location": "山西省运城市芮城县古魏镇龙泉村东侧永乐宫，纯阳殿《纯阳帝君神游显化图》相邻故事局部",
+      "detailedDescription": "《救刘氏病》中，贫困的刘氏跛足多年，吕祖指点他掘出地下五色石，研末服用后痊愈；他按约寻找恩人，却只在墙上看到吕祖画像。《游戏罗浮》中，吕祖到罗浮朱明观，以余酒治好道童眼疾，又在墙上画山水并留下暗含“吕”字的谜语，最终隐入画中或凌空而去。两段故事都把墙壁、图像与仙人显化联系起来。",
+      "readingGuide": [
+        "先按题榜区分治病与罗浮两个故事",
+        "寻找五色石、酒和壁画等关键物件",
+        "注意真实人物如何转化为墙上图像"
+      ],
+      "locationPrecision": "两个故事题名和主要情节明确；具体墙面坐标待纯阳殿全景图核对。"
+    }
+  ],
+  "elements": [
+    {
+      "id": "lm-e01",
+      "displayName": "龙母·启程布雨",
+      "researchName": "出宫·龙母单体",
+      "category": "主神",
+      "assetFile": "出宫_龙母_单体_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "九江圣母，主持出宫布雨。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e02",
+      "displayName": "四目量雨神·出宫",
+      "researchName": "出宫·四目神与量雨尺",
+      "category": "天气神",
+      "assetFile": "出宫_四目神量雨尺_人物法器组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "四目神或四眼天师候选，持量雨尺。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e03",
+      "displayName": "雷公·启雷出宫",
+      "researchName": "出宫·雷公",
+      "category": "天气神",
+      "assetFile": "出宫_雷公_人物法器组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "雷公与雷鼓组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e04",
+      "displayName": "龙母·雨后归宫",
+      "researchName": "回宫·龙母单体",
+      "category": "主神",
+      "assetFile": "回宫_龙母_单体_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "完成降雨后回宫的九江圣母。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e05",
+      "displayName": "四目量雨神·回宫",
+      "researchName": "回宫·四目神与量雨尺",
+      "category": "天气神",
+      "assetFile": "回宫_四目神量雨尺_人物法器组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "四目神或四眼天师候选，持量雨尺回宫。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e06",
+      "displayName": "雷公·雨后归宫",
+      "researchName": "回宫·雷公",
+      "category": "天气神",
+      "assetFile": "回宫_雷公_人物法器组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "雷公与雷鼓组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e07",
+      "displayName": "神兽车乘·出宫",
+      "researchName": "出宫·驾车者牵引兽车乘",
+      "category": "车乘组合",
+      "assetFile": "出宫_驾车者牵引兽车乘_组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "驾车者、牵引兽与车乘组成完整动作单元。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e08",
+      "displayName": "水晶宫中的龙母仪仗",
+      "researchName": "出宫·龙母侍女双扇水晶宫",
+      "category": "主神场景",
+      "assetFile": "出宫_龙母侍女双扇水晶宫_组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "龙母出宫前的水晶宫与侍女仪仗。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e09",
+      "displayName": "雨后归宫的龙母仪仗",
+      "researchName": "回宫·龙母侍女双扇水晶宫",
+      "category": "主神场景",
+      "assetFile": "回宫_龙母侍女双扇水晶宫_组合_简化补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "雨后回宫的龙母、水晶宫和侍女仪仗。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e10",
+      "displayName": "骑龙神祇与旗幡",
+      "researchName": "出宫·龙王神龙旗幡",
+      "category": "骑乘神祇",
+      "assetFile": "出宫_龙王神龙旗幡_组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "骑龙神祇、神龙与旗幡组合；身份仍需题榜校核。",
+      "aliases": [
+        "持水盂骑龙神祇·雨师候选"
+      ],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e11",
+      "displayName": "量雨尺神官·回宫",
+      "researchName": "回宫·量雨尺持有者",
+      "category": "天气神",
+      "assetFile": "回宫_量雨尺持有者_人物法器组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "持量雨尺的天气神人物组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e12",
+      "displayName": "骑马神祇与伞盖",
+      "researchName": "回宫·龙王骑马伞盖随从",
+      "category": "骑乘神祇",
+      "assetFile": "回宫_龙王骑马伞盖随从_组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "骑马神祇与伞盖、随从组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e13",
+      "displayName": "骑龙神祇（二）",
+      "researchName": "出宫·骑乘神祇02",
+      "category": "骑乘神祇",
+      "assetFile": "出宫_骑乘神祇02_神龙旗幡组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "神祇、龙形坐骑与旗幡；龙王序位待核。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e14",
+      "displayName": "骑龙鸟异兽神祇（三）",
+      "researchName": "出宫·骑乘神祇03",
+      "category": "骑乘神祇",
+      "assetFile": "出宫_骑乘神祇03_神龙旗幡组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "神祇、龙鸟形坐骑与旗幡；龙王序位待核。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e15",
+      "displayName": "骑长龙神祇（四）",
+      "researchName": "出宫·骑乘神祇04",
+      "category": "骑乘神祇",
+      "assetFile": "出宫_骑乘神祇04_神龙旗幡组合_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "神祇、长龙形坐骑与旗幡；龙王序位待核。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e16",
+      "displayName": "骑马神祇（二）",
+      "researchName": "回宫·骑乘神祇02",
+      "category": "骑乘神祇",
+      "assetFile": "回宫_骑乘神祇02_马伞盖随从组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "骑马神祇、伞盖与随从组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e17",
+      "displayName": "骑斑马神祇（三）",
+      "researchName": "回宫·骑乘神祇03",
+      "category": "骑乘神祇",
+      "assetFile": "回宫_骑乘神祇03_马随从组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "骑斑马纹坐骑神祇与随从组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e18",
+      "displayName": "骑斑马神祇与伞盖（四）",
+      "researchName": "回宫·骑乘神祇04",
+      "category": "骑乘神祇",
+      "assetFile": "回宫_骑乘神祇04_马伞盖组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "骑斑马纹坐骑神祇与伞盖组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e19",
+      "displayName": "骑黄马神祇（五）",
+      "researchName": "回宫·骑乘神祇05",
+      "category": "骑乘神祇",
+      "assetFile": "回宫_骑乘神祇05_马组合_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "骑黄马神祇组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e20",
+      "displayName": "持笏文官（一）",
+      "researchName": "出宫·持笏文官01",
+      "category": "文官",
+      "assetFile": "出宫_持笏文官01_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "可能属于功曹或传令系统。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e21",
+      "displayName": "持笏文官（二）",
+      "researchName": "出宫·持笏文官02",
+      "category": "文官",
+      "assetFile": "出宫_持笏文官02_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "可能属于功曹或传令系统。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e22",
+      "displayName": "风袋神祇·风伯候选",
+      "researchName": "出宫·风袋持有神祇",
+      "category": "天气神",
+      "assetFile": "出宫_风袋持有神祇_候选风伯_组合补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "候选风伯，保留人物、风袋与坐骑关系。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e23",
+      "displayName": "跪姿书判·记录官候选",
+      "researchName": "回宫·书判记录官",
+      "category": "文官",
+      "assetFile": "回宫_书判记录官_候选_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "跪姿持文书的书判或记录官候选。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e24",
+      "displayName": "被押解的异形·旱魃候选",
+      "researchName": "回宫·裸身异形押解组",
+      "category": "异形部众",
+      "assetFile": "回宫_裸身异形押解组_候选旱魃_组合补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "候选旱魃，两人及绳索关系完整。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e25",
+      "displayName": "雨后虹童",
+      "researchName": "回宫·虹童与彩虹",
+      "category": "天气神",
+      "assetFile": "回宫_虹童彩虹_组合补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "虹童举虹，象征雨后彩虹。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e26",
+      "displayName": "持镜女神·电母候选",
+      "researchName": "出宫·持双镜女神",
+      "category": "天气神",
+      "assetFile": "出宫_持双镜女神_电母候选_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "以双镜属性判断为电母候选。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e27",
+      "displayName": "年轻神使·虹童候选",
+      "researchName": "出宫·年轻神使",
+      "category": "天气神",
+      "assetFile": "出宫_年轻神使_虹童候选_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "年轻神使或虹童候选。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e28",
+      "displayName": "云焰骑将·云将候选",
+      "researchName": "出宫·持云焰骑马神将",
+      "category": "天气神",
+      "assetFile": "出宫_持云焰骑马神将_云将候选_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "持云焰的骑马云将候选。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e29",
+      "displayName": "乘车女神·风姨／电母候选",
+      "researchName": "回宫·乘车女神与仪仗",
+      "category": "天气神",
+      "assetFile": "回宫_乘车女神与仪仗_风姨电母回车候选_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "风姨或电母回车候选，身份待进一步校核。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e30",
+      "displayName": "传令记录官与异形随从",
+      "researchName": "出宫·传令记录官与异形随从",
+      "category": "文官",
+      "assetFile": "出宫_传令记录官与异形随从组_候选_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "传令、记录与异形随从组成的叙事单元。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e31",
+      "displayName": "文官与水神使者",
+      "researchName": "回宫·文官与水神使者",
+      "category": "文官",
+      "assetFile": "回宫_文官与水神使者组_候选_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "文官及水神使者候选组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e32",
+      "displayName": "持笏传令官",
+      "researchName": "回宫·持笏传令官01",
+      "category": "文官",
+      "assetFile": "回宫_持笏传令官01_候选_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "持笏传令官候选。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e33",
+      "displayName": "鱼首披鳞水族骑乘组",
+      "researchName": "出宫·鱼首披鳞坐骑与人物01",
+      "category": "水族异形",
+      "assetFile": "出宫_鱼首披鳞坐骑与人物组合01_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "鱼首披鳞水族及骑乘人物组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e34",
+      "displayName": "兽首水族骑乘组",
+      "researchName": "出宫·兽首坐骑与人物02",
+      "category": "水族异形",
+      "assetFile": "出宫_兽首坐骑与人物组合02_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "兽首水族、坐骑与人物组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e35",
+      "displayName": "绿脸与红脸水族部众",
+      "researchName": "出宫·绿脸红脸水族部众03",
+      "category": "水族异形",
+      "assetFile": "出宫_绿脸红脸水族部众组03_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "绿脸与红脸水族部众组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e36",
+      "displayName": "鱼虾兽首水族部众",
+      "researchName": "回宫·鱼虾兽首水族部众01",
+      "category": "水族异形",
+      "assetFile": "回宫_鱼虾兽首水族部众组01_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "鱼、虾和兽首水族部众回宫组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e37",
+      "displayName": "绿脸异形水族部众",
+      "researchName": "回宫·绿脸异形部众02",
+      "category": "水族异形",
+      "assetFile": "回宫_绿脸异形部众组02_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "绿脸异形水族部众组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e38",
+      "displayName": "出宫迎送山神土地",
+      "researchName": "出宫·山神土地迎送组",
+      "category": "山野神祇",
+      "assetFile": "出宫_山神土地迎送组_候选_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "山神、土地或地方神迎送候选组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e39",
+      "displayName": "回宫迎送山神土地",
+      "researchName": "回宫·山神土地迎送组",
+      "category": "山野神祇",
+      "assetFile": "回宫_山神土地迎送组_候选_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "山神、土地或地方神迎送候选组合。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e40",
+      "displayName": "驴马行旅",
+      "researchName": "出宫·骑驴骑马与牲畜赶路组",
+      "category": "人间层",
+      "assetFile": "出宫_骑驴骑马与牲畜赶路组_叙事提取_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "雨前或雨中赶路的人物、驴马与牲畜。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e41",
+      "displayName": "雨中挑担与驮运",
+      "researchName": "出宫·挑担打伞与驮运赶路组",
+      "category": "人间层",
+      "assetFile": "出宫_挑担打伞与驮运赶路组_叙事提取_补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "挑担、打伞和驮运人物，表现降雨中的人间反应。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e42",
+      "displayName": "雨后收获与搬运",
+      "researchName": "回宫·农民收获与搬运组",
+      "category": "人间层",
+      "assetFile": "回宫_农民收获与搬运组_叙事提取_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "雨后农民收获和搬运，表现降雨带来的生计改善。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e43",
+      "displayName": "村落归途",
+      "researchName": "回宫·行人与村落归途组",
+      "category": "人间层",
+      "assetFile": "回宫_行人与村落归途组_叙事提取_补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "雨后行人返回村落的生活场景。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e44",
+      "displayName": "出宫持扇侍女（一）",
+      "researchName": "出宫·持扇侍女01",
+      "category": "侍女",
+      "assetFile": "出宫_持扇侍女01_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "龙母水晶宫中的持扇侍女。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e45",
+      "displayName": "出宫持扇侍女（二）",
+      "researchName": "出宫·持扇侍女02",
+      "category": "侍女",
+      "assetFile": "出宫_持扇侍女02_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "龙母水晶宫中的持扇侍女。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e46",
+      "displayName": "回宫持扇侍女（一）",
+      "researchName": "回宫·持扇侍女01",
+      "category": "侍女",
+      "assetFile": "回宫_持扇侍女01_单体补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "回宫场景中的持扇侍女。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e47",
+      "displayName": "回宫持扇侍女（二）",
+      "researchName": "回宫·持扇侍女02",
+      "category": "侍女",
+      "assetFile": "回宫_持扇侍女02_单体补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "回宫场景中的持扇侍女。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e48",
+      "displayName": "电母双镜",
+      "researchName": "出宫·电母双镜",
+      "category": "法器",
+      "assetFile": "出宫_电母双镜_法器单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "电母候选人物所持双镜。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e49",
+      "displayName": "风伯风袋",
+      "researchName": "出宫·风袋",
+      "category": "法器",
+      "assetFile": "出宫_风袋_法器单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "风伯候选人物所持风袋。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e50",
+      "displayName": "量雨尺",
+      "researchName": "回宫·量雨尺",
+      "category": "法器",
+      "assetFile": "回宫_量雨尺_法器单体补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "用于控制或计量雨水的象征性法器。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e51",
+      "displayName": "龙王仪仗旗幡",
+      "researchName": "出宫·龙王旗幡01",
+      "category": "旗幡",
+      "assetFile": "出宫_龙王旗幡01_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "骑乘神祇队伍中的身份与仪仗标志。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e52",
+      "displayName": "神龙坐骑",
+      "researchName": "出宫·神龙坐骑01",
+      "category": "坐骑",
+      "assetFile": "出宫_神龙坐骑01_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "骑乘神祇的神龙坐骑。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e53",
+      "displayName": "白马坐骑",
+      "researchName": "回宫·白马坐骑01",
+      "category": "坐骑",
+      "assetFile": "回宫_白马坐骑01_单体补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "回宫骑乘神祇的白马坐骑。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e54",
+      "displayName": "鸟形异兽坐骑",
+      "researchName": "出宫·风伯鸟形异兽坐骑",
+      "category": "坐骑",
+      "assetFile": "出宫_风伯鸟形异兽坐骑_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "风伯候选人物所骑鸟形异兽。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e55",
+      "displayName": "仪仗牵引兽",
+      "researchName": "出宫·牵引兽",
+      "category": "动物",
+      "assetFile": "出宫_牵引兽_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "仪仗车乘前方的牵引兽。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e56",
+      "displayName": "鱼形披鳞水兽",
+      "researchName": "出宫·鱼形披鳞水兽",
+      "category": "动物",
+      "assetFile": "出宫_鱼形披鳞水兽_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "水族部众中的鱼形披鳞水兽。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e57",
+      "displayName": "出宫仪仗空车",
+      "researchName": "出宫·空车乘",
+      "category": "车辆",
+      "assetFile": "出宫_空车乘_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "移除人物和牵引兽后保留的仪仗车乘。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e58",
+      "displayName": "回宫女神空车",
+      "researchName": "回宫·女神空车乘",
+      "category": "车辆",
+      "assetFile": "回宫_女神空车乘_单体补全版.png",
+      "sourceMuralId": "lm-m02",
+      "shortDescription": "移除乘车女神后保留的回宫车乘。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿西壁 · 雨后回宫图"
+    },
+    {
+      "id": "lm-e59",
+      "displayName": "车载祥云团",
+      "researchName": "出宫·车载祥云团",
+      "category": "云纹",
+      "assetFile": "出宫_车载祥云团_单体补全版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "车乘周围的白灰色祥云团。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "lm-e60",
+      "displayName": "蓝色云焰纹组",
+      "researchName": "出宫·蓝色云焰纹组",
+      "category": "云纹",
+      "assetFile": "出宫_蓝色云焰纹组_单体提取版.png",
+      "sourceMuralId": "lm-m01",
+      "shortDescription": "四朵深蓝云焰纹，可作为界面装饰与动效素材。",
+      "aliases": [],
+      "provenanceText": "来自：广灵水神堂 · 圣母殿东壁 · 龙母出宫降雨图"
+    },
+    {
+      "id": "df-e01",
+      "displayName": "降魔成道坐佛",
+      "researchName": "降魔成道坐佛",
+      "category": "佛",
+      "assetFile": "佛_01_降魔成道坐佛.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "面对魔军仍寂然不动的佛陀。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e02",
+      "displayName": "雪山入定坐佛",
+      "researchName": "雪山入定坐佛",
+      "category": "佛",
+      "assetFile": "佛_02_雪山入定坐佛.png",
+      "sourceMuralId": "df-m02",
+      "shortDescription": "在雪山环境中禅坐修行的太子。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第四十三：雪山入定"
+    },
+    {
+      "id": "df-e03",
+      "displayName": "火龙魔难坐佛",
+      "researchName": "火龙魔难坐佛",
+      "category": "佛",
+      "assetFile": "佛_03_火龙魔难坐佛.png",
+      "sourceMuralId": "df-m03",
+      "shortDescription": "面对火龙仍保持禅定的佛陀。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第六十四：火龙魔难"
+    },
+    {
+      "id": "df-e04",
+      "displayName": "多臂魔王",
+      "researchName": "多臂魔王",
+      "category": "魔王",
+      "assetFile": "魔王_01_多臂魔王.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "率魔军阻挠佛陀成道的多臂魔王。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e05",
+      "displayName": "持枪天魔",
+      "researchName": "持枪天魔",
+      "category": "魔众",
+      "assetFile": "魔众_01_持枪天魔.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "魔军中的持枪攻击者。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e06",
+      "displayName": "飞行天魔",
+      "researchName": "飞行天魔",
+      "category": "魔众",
+      "assetFile": "魔众_02_飞行天魔.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "从空中袭来的魔军成员。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e07",
+      "displayName": "右侧魔将",
+      "researchName": "右侧魔将",
+      "category": "魔众",
+      "assetFile": "魔众_03_右侧魔将.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "画面右侧持兵器的魔将。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e08",
+      "displayName": "兽首小魔",
+      "researchName": "兽首小魔",
+      "category": "魔众",
+      "assetFile": "魔众_04_兽首小魔.png",
+      "sourceMuralId": "df-m01",
+      "shortDescription": "兽首蹲踞形象的小魔。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第五十二：魔军害佛"
+    },
+    {
+      "id": "df-e09",
+      "displayName": "层峦雪峰",
+      "researchName": "层峦雪峰",
+      "category": "山石",
+      "assetFile": "雪山_01_层峦雪峰.png",
+      "sourceMuralId": "df-m02",
+      "shortDescription": "雪山入定场景中的层叠山峰。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第四十三：雪山入定"
+    },
+    {
+      "id": "df-e10",
+      "displayName": "雪山古松",
+      "researchName": "雪山古松",
+      "category": "植物",
+      "assetFile": "松树_01_雪山古松.png",
+      "sourceMuralId": "df-m02",
+      "shortDescription": "强化隐逸与修行环境的古松。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第四十三：雪山入定"
+    },
+    {
+      "id": "df-e11",
+      "displayName": "火焰龙",
+      "researchName": "火焰龙",
+      "category": "神兽",
+      "assetFile": "火龙_01_火焰龙.png",
+      "sourceMuralId": "df-m03",
+      "shortDescription": "喷火袭击佛陀、最终被降伏的火龙。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第六十四：火龙魔难"
+    },
+    {
+      "id": "df-e12",
+      "displayName": "宫廷学堂",
+      "researchName": "宫廷学堂",
+      "category": "建筑",
+      "assetFile": "学堂_01_宫廷学堂.png",
+      "sourceMuralId": "df-m04",
+      "shortDescription": "佛传故事被转译为明代中国式学堂。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十五：入学算法"
+    },
+    {
+      "id": "df-e13",
+      "displayName": "书册算筹",
+      "researchName": "书册算筹",
+      "category": "器物",
+      "assetFile": "书卷_01_书册算筹.png",
+      "sourceMuralId": "df-m04",
+      "shortDescription": "书卷、书册、算筹板与笔砚组成的学习器物。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十五：入学算法"
+    },
+    {
+      "id": "df-e14",
+      "displayName": "绿袍白马武士",
+      "researchName": "绿袍白马武士",
+      "category": "骑马武士",
+      "assetFile": "骑马武士_01_绿袍白马武士.png",
+      "sourceMuralId": "df-m05",
+      "shortDescription": "武艺较量中的绿袍白马骑士。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十八：与南天国斗武艺"
+    },
+    {
+      "id": "df-e15",
+      "displayName": "红袍黄马武士",
+      "researchName": "红袍黄马武士",
+      "category": "骑马武士",
+      "assetFile": "骑马武士_02_红袍黄马武士.png",
+      "sourceMuralId": "df-m05",
+      "shortDescription": "武艺较量中的红袍黄马骑士。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十八：与南天国斗武艺"
+    },
+    {
+      "id": "df-e16",
+      "displayName": "蓝袍棕马武士",
+      "researchName": "蓝袍棕马武士",
+      "category": "骑马武士",
+      "assetFile": "骑马武士_03_蓝袍棕马武士.png",
+      "sourceMuralId": "df-m05",
+      "shortDescription": "武艺较量中的蓝袍棕马骑士。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十八：与南天国斗武艺"
+    },
+    {
+      "id": "df-e17",
+      "displayName": "耶输陀罗夫人",
+      "researchName": "耶输陀罗夫人",
+      "category": "人物",
+      "assetFile": "耶输陀罗夫人_01_宫中坐像.png",
+      "sourceMuralId": "df-m06",
+      "shortDescription": "罗睺罗诞生故事中的耶输陀罗。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第六十八：罗睺罗诞生"
+    },
+    {
+      "id": "df-e18",
+      "displayName": "白象",
+      "researchName": "白象",
+      "category": "动物",
+      "assetFile": "走象奔马_01_白象.png",
+      "sourceMuralId": "df-m07",
+      "shortDescription": "太子展示驾驭能力的白象。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十七：走象奔马"
+    },
+    {
+      "id": "df-e19",
+      "displayName": "棕色奔马",
+      "researchName": "棕色奔马",
+      "category": "动物",
+      "assetFile": "走象奔马_02_棕色奔马.png",
+      "sourceMuralId": "df-m07",
+      "shortDescription": "与白象共同构成疾驰试艺场面的奔马。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十七：走象奔马"
+    },
+    {
+      "id": "df-e20",
+      "displayName": "梵王",
+      "researchName": "梵王",
+      "category": "神祇",
+      "assetFile": "梵王_01_宫殿坐像.png",
+      "sourceMuralId": "df-m08",
+      "shortDescription": "回答太子生死与轮回问题的梵王。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第三十三：问梵王"
+    },
+    {
+      "id": "df-e21",
+      "displayName": "云端献香天人",
+      "researchName": "云端献香天人",
+      "category": "天人",
+      "assetFile": "天人_01_云端献香天人.png",
+      "sourceMuralId": "df-m09",
+      "shortDescription": "乘云向太子献香的天人。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十一：天人献香"
+    },
+    {
+      "id": "df-e22",
+      "displayName": "捧盘天女",
+      "researchName": "捧盘天女",
+      "category": "天人",
+      "assetFile": "天人_02_捧盘天女.png",
+      "sourceMuralId": "df-m09",
+      "shortDescription": "手捧供盘参与献香祥瑞的天女。",
+      "aliases": [],
+      "provenanceText": "来自：太原多福寺 · 大雄宝殿佛传壁画 · 第十一：天人献香"
+    },
+    {
+      "id": "yl-e01",
+      "displayName": "供案主神",
+      "researchName": "供案主神",
+      "category": "主神",
+      "assetFile": "01_供案主神.png",
+      "sourceMuralId": "yl-m02",
+      "shortDescription": "帝君级主尊、宝座与供案组合。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部02：帝君与供案"
+    },
+    {
+      "id": "yl-e02",
+      "displayName": "华盖主神",
+      "researchName": "华盖主神",
+      "category": "主神",
+      "assetFile": "02_华盖主神.png",
+      "sourceMuralId": "yl-m04",
+      "shortDescription": "华盖和圆光共同强调主尊身份。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部04：华盖主神"
+    },
+    {
+      "id": "yl-e03",
+      "displayName": "捧供器女神",
+      "researchName": "捧供器女神",
+      "category": "玉女",
+      "assetFile": "03_捧供器女神.png",
+      "sourceMuralId": "yl-m07",
+      "shortDescription": "奉持宝物或供器的玉女。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部07：奉宝玉女"
+    },
+    {
+      "id": "yl-e04",
+      "displayName": "持刀护卫双人组",
+      "researchName": "持刀护卫双人组",
+      "category": "护卫",
+      "assetFile": "04_持刀护卫双人组.png",
+      "sourceMuralId": "yl-m08",
+      "shortDescription": "负责开道、守卫与驱邪的天丁力士。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部08：天丁力士"
+    },
+    {
+      "id": "yl-e05",
+      "displayName": "圆光女神",
+      "researchName": "圆光女神",
+      "category": "女仙官",
+      "assetFile": "05_圆光女神.png",
+      "sourceMuralId": "yl-m09",
+      "shortDescription": "星辰女神或女仙官；准确神名需结合原墙位置。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部09：圆光女仙官"
+    },
+    {
+      "id": "yl-e06",
+      "displayName": "持剑神将与龙",
+      "researchName": "持剑神将与龙",
+      "category": "护法神",
+      "assetFile": "06_持剑神将与龙.png",
+      "sourceMuralId": "yl-m10",
+      "shortDescription": "青龙星君及青龙，象征东方守护。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部10：青龙星君"
+    },
+    {
+      "id": "yl-e07",
+      "displayName": "神将与白虎",
+      "researchName": "神将与白虎",
+      "category": "护法神",
+      "assetFile": "07_神将与白虎.png",
+      "sourceMuralId": "yl-m11",
+      "shortDescription": "白虎星君及白虎，象征西方守护。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部11：白虎星君"
+    },
+    {
+      "id": "yl-e08",
+      "displayName": "海上仙山仪仗扇",
+      "researchName": "海上仙山仪仗扇",
+      "category": "仪仗",
+      "assetFile": "08_海上仙山仪仗扇.png",
+      "sourceMuralId": "yl-m06",
+      "shortDescription": "带仙山图景的大型天庭仪仗扇。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 三清殿《朝元图》 · 朝元图局部06：仙山与仪仗"
+    },
+    {
+      "id": "yl-e09",
+      "displayName": "橙云神众",
+      "researchName": "橙云神众",
+      "category": "神众",
+      "assetFile": "09_橙云神众.png",
+      "sourceMuralId": "yl-m12",
+      "shortDescription": "吕祖显化组图中乘橙色祥云出现的神众。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 纯阳殿《纯阳帝君神游显化图》 · 吕祖显化组图：鼎州货墨、赵相公、赐药狄青、怀孕师尼"
+    },
+    {
+      "id": "yl-e10",
+      "displayName": "山中寺院院落",
+      "researchName": "山中寺院院落",
+      "category": "建筑",
+      "assetFile": "10_山中寺院院落.png",
+      "sourceMuralId": "yl-m13",
+      "shortDescription": "《瑞应永乐》中表现吕洞宾出生环境、宾客与白鹤祥瑞的院落。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 纯阳殿《纯阳帝君神游显化图》 · 瑞应永乐"
+    },
+    {
+      "id": "yl-e11",
+      "displayName": "青绿重楼",
+      "researchName": "青绿重楼",
+      "category": "建筑",
+      "assetFile": "11_青绿重楼.png",
+      "sourceMuralId": "yl-m14",
+      "shortDescription": "《神化婺州举塔》中的塔楼与寺院建筑。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 纯阳殿《纯阳帝君神游显化图》 · 神化婺州举塔"
+    },
+    {
+      "id": "yl-e12",
+      "displayName": "火焰宝舆",
+      "researchName": "火焰宝舆",
+      "category": "车舆",
+      "assetFile": "12_火焰宝舆.png",
+      "sourceMuralId": "yl-m15",
+      "shortDescription": "赐药狄青、怀孕师尼相邻故事局部中的火焰形宝舆。",
+      "aliases": [],
+      "provenanceText": "来自：芮城永乐宫 · 纯阳殿《纯阳帝君神游显化图》 · 赐药狄青、怀孕师尼局部"
+    }
+  ],
+  "sources": [
+    {
+      "topic": "广灵水神堂壁画位置与主题",
+      "url": "https://discovery.cctv.com/special/C16871/20061115/103737_2.shtml"
+    },
+    {
+      "topic": "多福寺佛传图年代、三壁和面积",
+      "url": "https://arts.fgs.org.tw/tw/keyword_search_detail.php?arg=RBRKD%2B1Tw1RsKb1rN1nS8kRarx%2F8bRQc3iGehhUo5hj%2BWXeLVF%2B%2FLkaeDwo"
+    },
+    {
+      "topic": "永乐宫《朝元图》与《神游显化图》",
+      "url": "https://zh.wikipedia.org/wiki/%E6%B0%B8%E4%B9%90%E5%AE%AB"
+    }
+  ]
+}
+
