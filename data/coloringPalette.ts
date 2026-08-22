@@ -1,98 +1,81 @@
-export interface PaletteColor {
+export type PigmentColor = {
   id: string;
-  name: string;
-  hex: string;
-  source: string;
-  /** 0–1, for UI texture preview */
-  texture?: number;
-}
+  nameZh: string;
+  nameEn: string;
+  value: string;
+};
 
-/** 从永乐宫三清殿东壁原作提取的传统矿物色（留存状态） */
-export const coloringPalette: PaletteColor[] = [
+/** 矿物颜料色板：用于着色交互，不是整页 UI 主题色。 */
+export const coloringPalette: PigmentColor[] = [
   {
-    id: "shiqing",
-    name: "石青",
-    hex: "#167F91",
-    source: "外层长袍主色，矿物蓝绿",
-    texture: 0.35,
+    id: "cinnabar",
+    nameZh: "朱砂",
+    nameEn: "Cinnabar Red",
+    value: "#A64B3C",
   },
   {
-    id: "kongque",
-    name: "孔雀蓝",
-    hex: "#1A6B7A",
-    source: "衣饰冷色层次",
-    texture: 0.3,
+    id: "stone-blue",
+    nameZh: "石青",
+    nameEn: "Stone Blue",
+    value: "#405E6B",
   },
   {
-    id: "shilv",
-    name: "石绿",
-    hex: "#3D7A5C",
-    source: "内层与手持物",
-    texture: 0.28,
+    id: "stone-green",
+    nameZh: "石绿",
+    nameEn: "Stone Green",
+    value: "#596D5A",
   },
   {
-    id: "qinghui",
-    name: "青灰",
-    hex: "#6B7F82",
-    source: "阴影与退晕",
-    texture: 0.25,
+    id: "earth-yellow",
+    nameZh: "土黄",
+    nameEn: "Earth Yellow",
+    value: "#C49A5C",
   },
   {
-    id: "zhusha",
-    name: "朱砂",
-    hex: "#8B352E",
-    source: "内层暖色衣饰",
-    texture: 0.32,
+    id: "ink-black",
+    nameZh: "烟墨",
+    nameEn: "Ink Black",
+    value: "#23211E",
   },
   {
-    id: "anhong",
-    name: "暗红",
-    hex: "#6E2E28",
-    source: "衣缘与深部",
-    texture: 0.3,
+    id: "wall-white",
+    nameZh: "铅白",
+    nameEn: "Wall White",
+    value: "#EDE6D8",
   },
   {
-    id: "zheshi",
-    name: "赭石",
-    hex: "#A2643E",
-    source: "祥云与肤色基调",
-    texture: 0.4,
+    id: "ochre",
+    nameZh: "赭石",
+    nameEn: "Ochre",
+    value: "#A2643E",
   },
   {
-    id: "tuhuang",
-    name: "土黄",
-    hex: "#C4A066",
-    source: "云纹与高光",
-    texture: 0.38,
+    id: "faded-teal",
+    nameZh: "青绿",
+    nameEn: "Faded Teal",
+    value: "#5E7A72",
   },
   {
-    id: "fuse",
-    name: "肤色",
-    hex: "#D4B08C",
-    source: "面部与手部",
-    texture: 0.22,
+    id: "smoke-gray",
+    nameZh: "烟灰",
+    nameEn: "Smoke Gray",
+    value: "#8D8A82",
   },
   {
-    id: "yanmo",
-    name: "烟墨",
-    hex: "#3A3530",
-    source: "发须与线描阴影",
-    texture: 0.15,
-  },
-  {
-    id: "qianbai",
-    name: "铅白",
-    hex: "#E8E2D4",
-    source: "高光与留白",
-    texture: 0.1,
-  },
-  {
-    id: "canbi",
-    name: "残壁灰",
-    hex: "#9A9488",
-    source: "老化与剥落痕迹",
-    texture: 0.45,
+    id: "skin",
+    nameZh: "肤色",
+    nameEn: "Skin Tone",
+    value: "#D5A07A",
   },
 ];
 
-export const defaultColorId = "shiqing";
+export const defaultColorId = "cinnabar";
+
+export function getPigmentById(id: string): PigmentColor | undefined {
+  return coloringPalette.find((color) => color.id === id);
+}
+
+export function getPigmentByValue(value: string): PigmentColor | undefined {
+  const normalized = value.toLowerCase();
+  return coloringPalette.find((color) => color.value.toLowerCase() === normalized);
+}

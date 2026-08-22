@@ -28,6 +28,8 @@ export interface StoryCardData extends MuralCardBase {
   imageAlt: string;
   detailImage: string;
   detailImageAlt: string;
+  /** 对应清单里的壁画 id；有值时详情打开真实壁画 */
+  muralId?: string;
 }
 
 export interface AnnotationCardData extends MuralCardBase {
@@ -283,7 +285,7 @@ export const muralCards: MuralCardData[] = [
     priority: "low",
   },
 
-  // ── 水神庙（左下） ──
+  // ── 广灵水神堂（左下） ──
   {
     id: "temple-shuishen",
     type: "temple",
@@ -300,14 +302,14 @@ export const muralCards: MuralCardData[] = [
     id: "story-shuishen-1",
     type: "story",
     templeId: "shuishen",
-    title: "戏台上的神祇",
+    title: "龙母如何出宫布雨？",
     description:
-      "水神庙壁画以元杂剧场景著称，戏曲表演与祭祀仪式在同一墙面交汇。",
-    keywords: ["元杂剧", "戏曲", "祭祀"],
+      "圣母殿东壁《龙母出宫降雨图》写九江圣母率仪仗离开水晶宫，雷公、风伯与龙骑列于同一出行队列。",
+    keywords: ["龙母出宫", "仪仗", "祈雨"],
     image: "/images/stories/shuishen-opera.svg",
-    imageAlt: "水神庙壁画戏曲场景",
+    imageAlt: "广灵水神堂龙母出宫壁画",
     detailImage: "/images/stories/shuishen-opera-detail.svg",
-    detailImageAlt: "戏曲场景细节",
+    detailImageAlt: "龙母出宫仪仗细节",
     x: 520,
     y: 2120,
     width: 210,
@@ -322,10 +324,10 @@ export const muralCards: MuralCardData[] = [
     templeId: "shuishen",
     title: "祈雨仪式如何被描绘？",
     description:
-      "从求雨到酬神，壁画以连续场景记录了民间水神信仰的核心仪式。",
-    keywords: ["祈雨", "水神信仰", "仪式"],
+      "东西两壁相对：东壁出宫降雨，西壁雨后归宫，把一次祈雨写成可以顺着墙面读完的故事。",
+    keywords: ["祈雨", "东西两壁", "仪式"],
     image: "/images/stories/shuishen-ritual.svg",
-    imageAlt: "水神庙壁画祈雨仪式",
+    imageAlt: "广灵水神堂祈雨壁画",
     detailImage: "/images/stories/shuishen-ritual-detail.svg",
     detailImageAlt: "祈雨仪式细节",
     x: 1020,
@@ -342,12 +344,12 @@ export const muralCards: MuralCardData[] = [
     templeId: "shuishen",
     title: "侍从与神祇的间距",
     description:
-      "侍从的体量与位置关系，暗示了神祇与人之间的权力与信仰距离。",
+      "雷公、镜光女神与风袋神祇环绕龙母，体量与间距标出主神与随从的等级。部分随从身份仍是候选名称。",
     keywords: ["侍从", "神祇", "空间关系"],
     image: "/images/stories/shuishen-attendant.svg",
-    imageAlt: "水神庙壁画侍从人物",
+    imageAlt: "广灵水神堂侍从神祇",
     detailImage: "/images/stories/shuishen-attendant-detail.svg",
-    detailImageAlt: "侍从人物细节",
+    detailImageAlt: "侍从神祇细节",
     x: 680,
     y: 1780,
     width: 170,

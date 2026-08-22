@@ -16,7 +16,6 @@ export const templePrefecture: Record<string, string> = {
   yanshan: "忻州",
   foguang: "忻州",
   duofu: "太原",
-  buer: "太原",
   longquan: "太原",
   huayan: "大同",
   shanhua: "大同",
@@ -26,12 +25,25 @@ export const templePrefecture: Record<string, string> = {
   yunlin: "晋中",
   yongning: "运城",
   yonglegong: "运城",
-  shuishen: "临汾",
+  shuishen: "大同",
 };
+
+/** 已有壁画、可从地图进入的寺观 */
+export const muralTempleIds = ["shuishen", "duofu", "yonglegong"] as const;
+export const muralTempleIdSet = new Set<string>(muralTempleIds);
+
+export function isMuralTemple(id: string): boolean {
+  return muralTempleIdSet.has(id);
+}
 
 /** 有寺庙分布的地市集合 */
 export const prefecturesWithTemples = new Set(
   Object.values(templePrefecture)
+);
+
+/** 已开放壁画的寺观所在地市 */
+export const prefecturesWithMuralTemples = new Set(
+  muralTempleIds.map((id) => templePrefecture[id])
 );
 
 /**

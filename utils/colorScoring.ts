@@ -67,7 +67,7 @@ export function computeColorScore(
           .map((v) => Math.round(v).toString(16).padStart(2, "0"))
           .join("")}`
       );
-      deltaE = deltaE2000(userLab, region.referenceLab);
+      deltaE = deltaE2000(userLab, rgbToLab(region.referenceColor));
       similarity = regionSimilarityFromDeltaE(deltaE);
       weightedSim += similarity * region.weight;
       totalWeight += region.weight;

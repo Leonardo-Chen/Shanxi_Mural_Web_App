@@ -4,7 +4,10 @@ import { memo, useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import type { MuralCardData, StoryCardData } from "@/data/muralCards";
 import { templeMap } from "@/data/temples";
+import { muralById } from "@/data/muralData";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { locAnnotationMural, locTemple } from "@/lib/i18n/localize";
 
 interface MuralCardProps {
   card: MuralCardData;
@@ -28,6 +31,7 @@ function MuralCardInner({
   isDragging = false,
 }: MuralCardProps) {
   const reducedMotion = useReducedMotion();
+  const { locale } = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -79,6 +83,7 @@ function MuralCardInner({
   if (card.type === "temple") {
     const temple = templeMap[card.templeId];
     if (!temple) return null;
+    const copy = locTemple(locale, temple);
 
     return (
       <div
@@ -87,7 +92,7 @@ function MuralCardInner({
         data-flip-id={card.id}
         role="button"
         tabIndex={isDetailOpen && !isSelected ? -1 : 0}
-        aria-label={`${temple.name}，${temple.region}，${temple.era}`}
+        aria-label={`${copy.name}，${copy.region}，${copy.era}`}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
@@ -105,12 +110,17 @@ function MuralCardInner({
           pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
         }}
       >
-        <TempleCardContent temple={temple} isHovered={isHovered} priority={priority} />
+        <TempleCardContent temple={copy} isHovered={isHovered} priority={priority} />
       </div>
     );
   }
 
   const story = card as StoryCardData;
+  const mural = story.muralId ? muralById[story.muralId] : undefined;
+  const muralCopy = mural ? locAnnotationMural(locale, mural) : null;
+  const storyTitle = muralCopy?.displayTitle ?? story.title;
+  const storyAlt = muralCopy?.displayTitle ?? story.imageAlt;
+
   return (
     <div
       ref={cardRef}
@@ -118,7 +128,7 @@ function MuralCardInner({
       data-flip-id={card.id}
       role="button"
       tabIndex={isDetailOpen && !isSelected ? -1 : 0}
-      aria-label={story.title}
+      aria-label={storyTitle}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
@@ -136,7 +146,13 @@ function MuralCardInner({
         pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
       }}
     >
-      <StoryCardContent story={story} isHovered={isHovered} priority={priority} />
+      <StoryCardContent
+        story={story}
+        title={storyTitle}
+        imageAlt={storyAlt}
+        isHovered={isHovered}
+        priority={priority}
+      />
     </div>
   );
 }
@@ -181,25 +197,27 @@ function TempleCardContent({
 
 function StoryCardContent({
   story,
+  title,
+  imageAlt,
   isHovered,
   priority,
 }: {
   story: StoryCardData;
+  title: string;
+  imageAlt: string;
   isHovered: boolean;
   priority: boolean;
 }) {
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-md bg-rice/50 shadow-[0_1px_8px_rgba(38,36,31,0.06)]">
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-md">
-        <Image
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-md bg-[#C8BFB0]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={story.image}
-          alt={story.imageAlt}
-          fill
-          sizes="(max-width: 768px) 160px, 240px"
-          priority={priority}
-          loading={priority ? undefined : "lazy"}
+          alt={imageAlt}
           draggable={false}
-          className="pointer-events-none select-none rounded-md object-cover group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
+          fetchPriority={priority ? "high" : "auto"}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none rounded-md object-cover group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
           style={{ WebkitUserDrag: "none" } as React.CSSProperties}
         />
       </div>
@@ -209,7 +227,7 @@ function StoryCardContent({
             isHovered ? "text-ink" : ""
           }`}
         >
-          {story.title}
+          {title}
         </p>
       </div>
     </div>

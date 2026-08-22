@@ -37,6 +37,13 @@ export const canvasLayout: CanvasLayout = {
   ],
 };
 
+/** 封面素材进入无限画布后的画布尺寸与中心（与寺庙卡片画布相互独立） */
+export const elementCanvasLayout = {
+  desktop: { width: 5600, height: 3800, center: { x: 2800, y: 1900 } },
+  tablet: { width: 5600, height: 3800, center: { x: 2800, y: 1900 } },
+  mobile: { width: 2400, height: 3200, center: { x: 1200, y: 1600 } },
+} as const;
+
 /** 寺庙在画布上的锚点，用于绘制淡连接线与 Minimap */
 export const templeAnchors: Record<string, ViewportPosition> = {
   gongzhu: { x: 2110, y: 1490 },

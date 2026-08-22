@@ -1,10 +1,10 @@
+import type { Metadata } from "next";
 import ColoringGamePage from "@/components/coloring/ColoringGamePage";
+import { localeMetadata } from "@/lib/i18n/requestLocale";
 
-export const metadata = {
-  title: "为神明着色 | 看见壁上山西",
-  description:
-    "选择传统矿物色，为永乐宫三清殿东壁天神重新着色，并与原壁画留存色彩比较。",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return localeMetadata("meta.colorTitle", "meta.colorDesc");
+}
 
 export default function ColorTheMuralPage() {
   return <ColoringGamePage />;

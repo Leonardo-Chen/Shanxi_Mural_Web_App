@@ -1,480 +1,503 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import FixedNavigation from "@/components/FixedNavigation";
 import TextureBackground from "@/components/TextureBackground";
-import BrushSettingsPanel from "@/components/coloring/BrushSettingsPanel";
-import ColorPalette from "@/components/coloring/ColorPalette";
-import ColoringIntro from "@/components/coloring/ColoringIntro";
-import ColoringProgress from "@/components/coloring/ColoringProgress";
-import ColoringSiteNav from "@/components/coloring/ColoringSiteNav";
-import ComparisonView from "@/components/coloring/ComparisonView";
-import CelebrationOverlay from "@/components/coloring/CelebrationOverlay";
-import ScoreReveal from "@/components/coloring/ScoreReveal";
-import CulturalHints from "@/components/coloring/CulturalHints";
-import MuralCanvas, {
-  type MuralCanvasHandle,
-} from "@/components/coloring/MuralCanvas";
-import ToolSelector from "@/components/coloring/ToolSelector";
-import { coloringArtwork } from "@/data/coloringArtwork";
-import { defaultColorId, coloringPalette } from "@/data/coloringPalette";
-import { useAutosave } from "@/hooks/coloring/useAutosave";
-import { computeColorScore } from "@/utils/colorScoring";
-import { downloadBlob, exportShareCard } from "@/utils/canvasExport";
+import CanvasControls from "@/components/coloring/CanvasControls";
+import CollectPostcardButton from "@/components/coloring/CollectPostcardButton";
+import ColoringHeader from "@/components/coloring/ColoringHeader";
+import ColoringTools from "@/components/coloring/ColoringTools";
+import ConfirmDialog from "@/components/coloring/ConfirmDialog";
+import FinishColoringButton from "@/components/coloring/FinishColoringButton";
+import LineArtCanvas, {
+  type LineArtCanvasHandle,
+} from "@/components/coloring/LineArtCanvas";
+import OriginalMuralPanel from "@/components/coloring/OriginalMuralPanel";
+import PigmentPalette from "@/components/coloring/PigmentPalette";
+import PostcardPreview from "@/components/coloring/PostcardPreview";
 import {
-  defaultBrush,
-  toolBrushDefaults,
-  type BrushSettings,
-  type DrawingTool,
+  buildArtworkFromPair,
+  FALLBACK_ARTWORK,
+  type ColoringArtwork,
+  type ColoringArtworkPair,
+} from "@/data/coloringArtworks";
+import { defaultColorId, getPigmentById } from "@/data/coloringPalette";
+import {
+  listColoringAutosaves,
+  useColoringAutosave,
+} from "@/hooks/coloring/useColoringAutosave";
+import { usePostcardCollection } from "@/hooks/coloring/usePostcardCollection";
+import { useRegionColoring } from "@/hooks/coloring/useRegionColoring";
+import { Flip } from "@/hooks/coloring/useColoringTransition";
+import { useColorSimilarity } from "@/hooks/useColorSimilarity";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import {
+  coloringDataHash,
+  usedPigmentValues,
+} from "@/utils/coloringScore";
+import { downloadDataUrl } from "@/utils/coloringExport";
+import { exportColoringPostcard } from "@/utils/postcardExport";
+import type {
+  InteractionMode,
+  PaintSizeId,
+  PaintTool,
 } from "@/utils/drawingTools";
-import { getRegionName } from "@/data/coloringRegions";
-import { extractRegionMasks, buildRegionIdMap } from "@/utils/maskProcessing";
 
-type Phase = "intro" | "paint" | "result";
+type ColoringStage = "coloring" | "comparison";
 
 export default function ColoringGamePage() {
-  const canvasRef = useRef<MuralCanvasHandle>(null);
-  const [phase, setPhase] = useState<Phase>("intro");
-  const [started, setStarted] = useState(false);
-  const [tool, setTool] = useState<DrawingTool>("crayon");
-  const [colorId, setColorId] = useState(defaultColorId);
-  const [color, setColor] = useState(
-    coloringPalette.find((c) => c.id === defaultColorId)!.hex
+  const { t } = useLocale();
+  const reducedMotion = useReducedMotion();
+  const canvasRef = useRef<LineArtCanvasHandle>(null);
+  const [artwork, setArtwork] = useState<ColoringArtwork | null>(null);
+  const [stage, setStage] = useState<ColoringStage>("coloring");
+  const [selectedColorId, setSelectedColorId] = useState(defaultColorId);
+  const [customColor, setCustomColor] = useState("#A64B3C");
+  const [mode, setMode] = useState<InteractionMode>("paint");
+  const [tool, setTool] = useState<PaintTool>("crayon");
+  const [sizeId, setSizeId] = useState<PaintSizeId>("medium");
+  const [paintHistory, setPaintHistory] = useState({
+    canUndo: false,
+    canRedo: false,
+  });
+  const [confirmIncomplete, setConfirmIncomplete] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [revealStars, setRevealStars] = useState(false);
+  const [showCollect, setShowCollect] = useState(false);
+  const [postcardPreview, setPostcardPreview] = useState<string | null>(null);
+  const [generatingPostcard, setGeneratingPostcard] = useState(false);
+
+  const regions = artwork?.regions ?? [];
+  const selectedColor =
+    selectedColorId === "custom"
+      ? customColor
+      : getPigmentById(selectedColorId)?.value ??
+        artwork?.palette[0]?.value ??
+        "#A64B3C";
+
+  const {
+    regionColors,
+    fillRegion,
+    restoreColors,
+    completion,
+  } = useRegionColoring(regions);
+
+  const { restorePrompt, setRestorePrompt, clearSave } = useColoringAutosave(
+    artwork?.id ?? null,
+    regionColors,
+    selectedColorId
   );
-  const [customColor, setCustomColor] = useState("#167F91");
-  const [brush, setBrush] = useState<BrushSettings>(toolBrushDefaults.crayon);
-  const [coloredRegions, setColoredRegions] = useState<Set<string>>(new Set());
-  const [completion, setCompletion] = useState(0);
-  const [showClearDialog, setShowClearDialog] = useState(false);
-  const [showDeityInfo, setShowDeityInfo] = useState(false);
-  const [showScoreReveal, setShowScoreReveal] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [score, setScore] = useState<ReturnType<typeof computeColorScore> | null>(
-    null
-  );
-  const [compositeUrl, setCompositeUrl] = useState("");
-  const [mobileDrawer, setMobileDrawer] = useState(false);
-  const [hoverRegion, setHoverRegion] = useState<number | null>(null);
 
-  const getPaintDataUrl = useCallback(
-    () => canvasRef.current?.getPaintDataUrl() ?? null,
-    []
+  const similarity = useColorSimilarity(
+    regionColors,
+    regions,
+    stage === "comparison"
   );
 
-  const { restorePrompt, setRestorePrompt, clearSave } = useAutosave(
-    getPaintDataUrl,
-    coloredRegions
+  const postcardId = artwork
+    ? coloringDataHash(artwork.id, regionColors)
+    : null;
+  const { isCollected, collect } = usePostcardCollection(postcardId);
+  const usedValues = useMemo(
+    () => usedPigmentValues(regionColors),
+    [regionColors]
   );
 
-  const handleStart = () => {
-    setStarted(true);
-    setPhase("paint");
-  };
+  const pendingFlip = useRef<Flip.FlipState | null>(null);
 
-  const handleToolChange = (t: DrawingTool) => {
-    setTool(t);
-    setBrush((prev) => ({
-      ...toolBrushDefaults[t],
-      size: prev.size,
-    }));
-  };
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/coloring-artworks")
+      .then((response) => response.json())
+      .then((data: { pairs?: ColoringArtworkPair[] }) => {
+        if (cancelled) return;
+        const pairs = data.pairs?.length ? data.pairs : null;
+        const saved = listColoringAutosaves()[0];
+        const savedPair = saved
+          ? pairs?.find((pair) => pair.id === saved.artworkId)
+          : undefined;
+        const pool = pairs ?? [];
+        const randomPair =
+          pool[Math.floor(Math.random() * Math.max(pool.length, 1))];
+        const chosen = savedPair ?? randomPair;
+        setArtwork(chosen ? buildArtworkFromPair(chosen) : FALLBACK_ARTWORK);
+      })
+      .catch(() => {
+        if (!cancelled) setArtwork(FALLBACK_ARTWORK);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const handleSubmit = async () => {
-    if (submitting) return;
-    setSubmitting(true);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const meta = event.metaKey || event.ctrlKey;
+      if (!meta) return;
+      if (event.key.toLowerCase() === "z" && event.shiftKey) {
+        event.preventDefault();
+        canvasRef.current?.redo();
+      } else if (event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        canvasRef.current?.undo();
+      } else if (event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        canvasRef.current?.redo();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-    const paint = canvasRef.current?.getPaintCanvas();
-    const line = canvasRef.current?.getLineCanvas();
-    if (!paint || !line) {
-      setSubmitting(false);
+  useLayoutEffect(() => {
+    const state = pendingFlip.current;
+    if (!state || reducedMotion) return;
+    pendingFlip.current = null;
+    Flip.from(state, {
+      duration: 0.85,
+      ease: "power2.inOut",
+      scale: true,
+      fade: true,
+      nested: true,
+    });
+  }, [reducedMotion, stage]);
+
+  useEffect(() => {
+    if (stage !== "comparison") {
+      setRevealStars(false);
+      setShowCollect(false);
       return;
     }
+    if (reducedMotion) {
+      setRevealStars(true);
+      setShowCollect(true);
+      return;
+    }
+    const starTimer = window.setTimeout(() => setRevealStars(true), 450);
+    const collectTimer = window.setTimeout(() => setShowCollect(true), 880);
+    return () => {
+      window.clearTimeout(starTimer);
+      window.clearTimeout(collectTimer);
+    };
+  }, [reducedMotion, stage]);
 
-    const w = paint.width;
-    const h = paint.height;
-    const { ctx } = await buildRegionIdMap(w, h);
-    const masks = extractRegionMasks(ctx, w, h);
-    const paintData = paint.getContext("2d")!.getImageData(0, 0, w, h).data;
+  const enterComparison = useCallback(() => {
+    if (!reducedMotion) {
+      pendingFlip.current = Flip.getState(
+        "[data-coloring-canvas], [data-coloring-palette]"
+      );
+    }
+    setStage("comparison");
+  }, [reducedMotion]);
 
-    const result = computeColorScore(paintData, masks, w, h);
-    setScore(result);
-    setShowScoreReveal(true);
-    setShowCelebration(result.finalScore >= 80);
-
-    const composite = document.createElement("canvas");
-    composite.width = w;
-    composite.height = h;
-    const cctx = composite.getContext("2d")!;
-    cctx.fillStyle = "#EEE8DC";
-    cctx.fillRect(0, 0, w, h);
-    cctx.drawImage(paint, 0, 0);
-    cctx.drawImage(line, 0, 0);
-    setCompositeUrl(composite.toDataURL("image/png"));
-
-    setSubmitting(false);
+  const handleFinish = () => {
+    if (completion < 0.6) {
+      setConfirmIncomplete(true);
+      return;
+    }
+    enterComparison();
   };
 
-  const goToComparison = () => {
-    clearSave();
-    setShowScoreReveal(false);
-    setShowCelebration(false);
-    setPhase("result");
+  const handleEditAgain = () => {
+    if (!reducedMotion) {
+      pendingFlip.current = Flip.getState(
+        "[data-coloring-canvas], [data-coloring-palette]"
+      );
+    }
+    setStage("coloring");
+    setRevealStars(false);
+    setShowCollect(false);
+    setPostcardPreview(null);
   };
 
-  const dismissScore = () => {
-    setShowScoreReveal(false);
-    setShowCelebration(false);
+  const handleCollect = async () => {
+    if (!artwork || !similarity || generatingPostcard || isCollected) return;
+    setGeneratingPostcard(true);
+    try {
+      const artworkCanvas = await canvasRef.current?.exportComposite();
+      if (!artworkCanvas) return;
+      const createdAt = new Date();
+      const imageDataUrl = await exportColoringPostcard({
+        artworkCanvas,
+        title: artwork.title,
+        figureName: artwork.figureName,
+        templeName: artwork.templeName,
+        stars: similarity.stars,
+        createdAt,
+      });
+      collect({
+        id: coloringDataHash(artwork.id, regionColors),
+        artworkId: artwork.id,
+        imageDataUrl,
+        stars: similarity.stars,
+        createdAt: createdAt.toISOString(),
+        title: `${artwork.templeName} · ${artwork.figureName}`,
+      });
+      setPostcardPreview(imageDataUrl);
+    } finally {
+      setGeneratingPostcard(false);
+    }
   };
 
-  const handleDownload = async () => {
-    const paint = canvasRef.current?.getPaintCanvas();
-    const line = canvasRef.current?.getLineCanvas();
-    if (!paint || !line || !score) return;
-    const blob = await exportShareCard({
-      paintCanvas: paint,
-      lineCanvas: line,
-      score: score.finalScore,
-      colorSimilarity: score.colorSimilarity,
-      completion: score.completion,
-    });
-    downloadBlob(blob, "为神明着色-永乐宫.png");
-  };
+  const isColoring = stage === "coloring";
+  const locked = isColoring;
 
-  const handleRetry = () => {
-    canvasRef.current?.clearAll();
-    setScore(null);
-    setCompositeUrl("");
-    setShowScoreReveal(false);
-    setShowCelebration(false);
-    setPhase("paint");
-    setStarted(true);
-  };
-
-  const compositeForResult = compositeUrl;
-
-  if (phase === "result" && score && compositeForResult) {
+  if (!artwork) {
     return (
-      <div className="coloring-page coloring-page--scroll relative min-h-screen">
+      <div className="coloring-root coloring-root--locked relative min-h-svh bg-parchment">
         <TextureBackground />
-        <ColoringSiteNav />
-        <main className="relative z-10 pt-16">
-          <ComparisonView
-            userPaintUrl={compositeForResult}
-            userCompositeUrl={compositeForResult}
-            score={score}
-            onRetry={handleRetry}
-            onDownload={handleDownload}
-            onDeityInfo={() => setShowDeityInfo(true)}
-            onBackInteractive={() => setPhase("paint")}
-          />
-        </main>
-        {showDeityInfo && (
-          <InfoModal
-            title={coloringArtwork.deityIntro.title}
-            body={coloringArtwork.deityIntro.body}
-            onClose={() => setShowDeityInfo(false)}
-          />
-        )}
+        <FixedNavigation instructionKey="color.headerHint" />
+        <p className="pt-32 text-center font-serif text-sm text-stone">
+          {t("color.loading")}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="coloring-page relative h-screen overflow-hidden">
+    <div
+      className={`coloring-root relative bg-parchment ${
+        locked
+          ? "coloring-root--locked h-svh overflow-hidden"
+          : "min-h-svh overflow-y-auto"
+      }`}
+    >
       <TextureBackground />
-      <ColoringSiteNav />
+      <FixedNavigation
+        instructionKey={
+          isColoring ? "color.headerHint" : "color.compareHint"
+        }
+      />
+      <ColoringHeader stage={stage} />
 
       <main
-        className="relative z-10 flex h-[calc(100vh-56px)] flex-col pt-14 md:flex-row"
-        style={{ height: "calc(100vh - 56px)" }}
+        className={`relative z-10 mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col px-4 pb-8 pt-3 md:px-8 ${
+          locked ? "h-[calc(100svh-7.5rem)]" : ""
+        }`}
       >
-        {/* Desktop left toolbar */}
-        <aside className="hidden w-[120px] shrink-0 flex-col gap-3 overflow-y-auto border-r border-ink/10 bg-rice/30 p-3 md:flex lg:w-[132px]">
-          <p className="font-sans text-[9px] tracking-wider text-stone">色板</p>
-          <ColorPalette
-            selectedId={colorId}
-            customColor={customColor}
-            onSelect={(id, hex) => {
-              setColorId(id);
-              setColor(hex);
-            }}
-            onCustomChange={setCustomColor}
-          />
-          <p className="mt-2 font-sans text-[9px] tracking-wider text-stone">
-            工具
-          </p>
-          <ToolSelector tool={tool} onChange={handleToolChange} />
-          <BrushSettingsPanel brush={brush} onChange={setBrush} />
-          <UndoRedoBar canvasRef={canvasRef} onClear={() => setShowClearDialog(true)} />
-        </aside>
-
-        {/* Canvas + footer */}
-        <section className="relative flex min-h-0 flex-1 flex-col">
-          <div className="relative min-h-0 flex-1">
-            {!started && phase === "intro" && (
-              <ColoringIntro onStart={handleStart} />
-            )}
-            {started && (
-              <>
-                <MuralCanvas
-                  ref={canvasRef}
-                  active={phase === "paint" && !showScoreReveal}
-                  tool={tool}
-                  color={color}
-                  brush={brush}
-                  onColoredRegionsChange={setColoredRegions}
-                  onCompletionChange={setCompletion}
-                  onHoverRegion={setHoverRegion}
-                />
-                <CelebrationOverlay active={showCelebration} />
-              </>
-            )}
-          </div>
-
-          {started && (
-            <footer className="shrink-0 border-t border-ink/10 bg-rice/50 px-4 py-3 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:px-6 md:pb-3">
-              {showScoreReveal && score ? (
-                <ScoreReveal
-                  score={score}
-                  onViewComparison={goToComparison}
-                  onContinue={dismissScore}
-                />
-              ) : (
-                <div className="flex justify-center md:justify-end">
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="rounded-sm bg-cinnabar px-6 py-2.5 font-sans text-xs tracking-wider text-rice shadow-sm transition-colors hover:bg-cinnabar/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar disabled:opacity-50"
-                  >
-                    {submitting ? "正在评分…" : "完成上色"}
-                  </button>
-                </div>
-              )}
-            </footer>
+        <div
+          className={
+            isColoring
+              ? "flex min-h-0 flex-1 flex-col gap-4 md:grid md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.85fr)] md:items-stretch md:gap-x-[6%]"
+              : "grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-x-6 lg:grid-cols-[minmax(0,0.37fr)_minmax(0,0.37fr)_minmax(0,0.22fr)] lg:gap-x-0"
+          }
+        >
+          {stage === "comparison" && similarity && (
+            <div className="border-ink/10 lg:border-r lg:px-6">
+              <OriginalMuralPanel
+                originalUrl={artwork.originalUrl}
+                figureName={artwork.figureName}
+                templeName={artwork.templeName}
+                stars={similarity.stars}
+                incomplete={similarity.incomplete}
+                revealStars={revealStars}
+              />
+            </div>
           )}
-        </section>
 
-        {/* Desktop right sidebar */}
-        <aside className="hidden w-[280px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-ink/10 bg-rice/30 p-4 lg:flex lg:w-[300px]">
-          <SidebarContent
-            coloredCount={coloredRegions.size}
-            completion={completion}
-            hoverRegion={hoverRegion}
-          />
-        </aside>
-
-        {/* Mobile bottom toolbar */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-ink/10 bg-rice/95 backdrop-blur-sm md:hidden">
-          <div className="flex items-center gap-1 overflow-x-auto px-2 py-2">
-            <ColorPalette
-              compact
-              selectedId={colorId}
-              customColor={customColor}
-              onSelect={(id, hex) => {
-                setColorId(id);
-                setColor(hex);
-              }}
-              onCustomChange={setCustomColor}
-            />
-          </div>
-          <div className="flex gap-1 border-t border-ink/10 px-2 py-2">
-            <ToolSelector compact tool={tool} onChange={handleToolChange} />
-            <button
-              type="button"
-              onClick={() => setMobileDrawer(true)}
-              className="min-h-[44px] rounded-sm border border-ink/10 px-3 font-sans text-[10px] text-stone"
+          <section className="relative flex min-h-0 flex-col lg:px-6">
+            {stage === "comparison" && (
+              <h2 className="mb-3 text-center font-sans text-[10px] tracking-[0.22em] text-stone">
+                {t("color.yourColoring")}
+              </h2>
+            )}
+            <div
+              data-coloring-canvas
+              className={`relative border border-ink/10 ${
+                isColoring
+                  ? "min-h-[46svh] flex-1 md:min-h-0"
+                  : "h-[min(48svh,420px)] min-h-[240px] w-full shrink-0"
+              }`}
             >
-              说明
-            </button>
-          </div>
+              <LineArtCanvas
+                ref={canvasRef}
+                lineArtUrl={artwork.lineArtUrl}
+                figureName={artwork.figureName}
+                templeName={artwork.templeName}
+                regions={regions}
+                regionColors={regionColors}
+                selectedColor={selectedColor}
+                interactive={isColoring}
+                mode={mode}
+                tool={tool}
+                sizeId={sizeId}
+                onFillRegion={(regionId) => fillRegion(regionId, selectedColor)}
+                onRegionColorsChange={restoreColors}
+                onHistoryChange={setPaintHistory}
+              />
+              {isColoring && (
+                <CanvasControls
+                  canUndo={paintHistory.canUndo}
+                  onUndo={() => canvasRef.current?.undo()}
+                  onClear={() => setConfirmClear(true)}
+                />
+              )}
+            </div>
+            {stage === "comparison" && (
+              <div
+                className={`flex shrink-0 flex-col items-center pb-2 transition-opacity duration-500 ${
+                  showCollect ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <CollectPostcardButton
+                  collected={isCollected}
+                  onClick={() => {
+                    void handleCollect();
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleEditAgain}
+                  className="mt-2 min-h-11 px-3 font-sans text-[11px] tracking-wide text-stone hover:text-ink"
+                >
+                  {t("color.editAgain")}
+                </button>
+              </div>
+            )}
+          </section>
+
+          <section
+            data-coloring-palette
+            className={`flex min-h-0 flex-col items-center overflow-visible border-ink/10 ${
+              isColoring
+                ? "justify-start overflow-y-auto md:border-l md:pl-6 md:pr-1"
+                : "justify-start md:col-span-2 lg:col-span-1 lg:border-l lg:px-5"
+            } ${isColoring ? "hidden md:flex" : ""}`}
+          >
+            {isColoring && (
+              <ColoringTools
+                mode={mode}
+                tool={tool}
+                sizeId={sizeId}
+                onModeChange={setMode}
+                onToolChange={setTool}
+                onSizeChange={setSizeId}
+                onFit={() => canvasRef.current?.fitView()}
+              />
+            )}
+            {stage === "comparison" && (
+              <h2 className="mb-3 font-sans text-[10px] tracking-[0.22em] text-stone">
+                {t("color.yourPalette")}
+              </h2>
+            )}
+            <PigmentPalette
+              palette={artwork.palette}
+              selectedId={selectedColorId}
+              usedValues={stage === "comparison" ? usedValues : undefined}
+              interactive={isColoring}
+              showList={!isColoring}
+              onSelect={(color) => setSelectedColorId(color.id)}
+            />
+            {isColoring && (
+              <label className="mt-4 flex min-h-11 items-center gap-2 font-sans text-[11px] tracking-wide text-stone">
+                <input
+                  type="color"
+                  value={selectedColor}
+                  onChange={(event) => {
+                    setCustomColor(event.target.value);
+                    setSelectedColorId("custom");
+                  }}
+                  className="h-7 w-7 cursor-pointer border border-ink/15 bg-transparent p-0"
+                  aria-label={t("color.custom")}
+                />
+                {t("color.custom")}
+              </label>
+            )}
+          </section>
         </div>
+
+        {isColoring && (
+          <>
+            <div className="mt-3 border-t border-ink/10 pt-3 md:hidden">
+              <ColoringTools
+                mode={mode}
+                tool={tool}
+                sizeId={sizeId}
+                onModeChange={setMode}
+                onToolChange={setTool}
+                onSizeChange={setSizeId}
+                onFit={() => canvasRef.current?.fitView()}
+              />
+              <PigmentPalette
+                palette={artwork.palette}
+                selectedId={selectedColorId}
+                interactive
+                compact
+                onSelect={(color) => setSelectedColorId(color.id)}
+              />
+            </div>
+            <div className="flex shrink-0 justify-center pb-2 pt-3 md:pt-4">
+              <FinishColoringButton onClick={handleFinish} />
+            </div>
+          </>
+        )}
       </main>
 
-      {mobileDrawer && (
-        <div
-          className="fixed inset-0 z-40 bg-ink/25 md:hidden"
-          onClick={() => setMobileDrawer(false)}
-        >
-          <div
-            className="absolute bottom-0 max-h-[70vh] w-full overflow-y-auto rounded-t-sm border-t border-ink/10 bg-rice p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SidebarContent
-              coloredCount={coloredRegions.size}
-              completion={completion}
-              hoverRegion={hoverRegion}
-            />
-            <BrushSettingsPanel brush={brush} onChange={setBrush} />
-          </div>
-        </div>
-      )}
-
-
-      {showClearDialog && (
-        <ConfirmModal
-          title="确定清空当前所有颜色吗？"
-          onCancel={() => setShowClearDialog(false)}
-          onConfirm={() => {
-            canvasRef.current?.clearAll();
-            setShowClearDialog(false);
-          }}
-        />
-      )}
-
-      {restorePrompt && phase === "intro" && (
-        <ConfirmModal
-          title="发现一幅尚未完成的作品，是否继续？"
-          confirmLabel="继续上色"
-          cancelLabel="重新开始"
+      {restorePrompt && (
+        <ConfirmDialog
+          title={t("color.resumeTitle")}
+          body={t("color.resumeBody")}
+          cancelLabel={t("color.restart")}
+          confirmLabel={t("color.resume")}
           onCancel={() => {
             clearSave();
-            setRestorePrompt(null);
+            restoreColors({});
+            canvasRef.current?.restoreFromRegionColors({});
           }}
           onConfirm={() => {
-            canvasRef.current?.restorePaintFromDataUrl(
-              restorePrompt.paintDataUrl
-            );
-            setColoredRegions(new Set(restorePrompt.coloredRegions));
+            restoreColors(restorePrompt.regionColors);
+            if (restorePrompt.selectedColorId) {
+              setSelectedColorId(restorePrompt.selectedColorId);
+            }
+            canvasRef.current?.restoreFromRegionColors(restorePrompt.regionColors);
             setRestorePrompt(null);
-            handleStart();
           }}
         />
       )}
-    </div>
-  );
-}
 
-function SidebarContent({
-  coloredCount,
-  completion,
-  hoverRegion,
-}: {
-  coloredCount: number;
-  completion: number;
-  hoverRegion: number | null;
-}) {
-  return (
-    <>
-      <div>
-        <p className="font-sans text-[10px] tracking-wider text-stone">作品</p>
-        <p className="font-serif text-base text-ink">{coloringArtwork.title}</p>
-        <p className="mt-1 font-sans text-[10px] text-stone">
-          地点：{coloringArtwork.location}
-        </p>
-      </div>
-      <p className="font-serif text-[11px] leading-relaxed text-ink/65">
-        选择颜色后，用蜡笔点击区域即可填色；铅笔适合细节，橡皮可清除区域。
-      </p>
-      <ColoringProgress coloredCount={coloredCount} completion={completion} />
-      {hoverRegion != null && (
-        <p className="font-sans text-[10px] text-stone">
-          当前区域：{getRegionName(hoverRegion)}
-        </p>
+      {confirmIncomplete && (
+        <ConfirmDialog
+          title={t("color.unfinishedTitle")}
+          body={t("color.unfinishedBody")}
+          cancelLabel={t("color.keepColoring")}
+          confirmLabel={t("color.stillFinish")}
+          onCancel={() => setConfirmIncomplete(false)}
+          onConfirm={() => {
+            setConfirmIncomplete(false);
+            enterComparison();
+          }}
+        />
       )}
-      <CulturalHints />
-    </>
-  );
-}
 
-function UndoRedoBar({
-  canvasRef,
-  onClear,
-}: {
-  canvasRef: React.RefObject<MuralCanvasHandle | null>;
-  onClear: () => void;
-}) {
-  return (
-    <div className="mt-auto flex flex-col gap-1 border-t border-ink/10 pt-2">
-      <button
-        type="button"
-        aria-label="撤销"
-        onClick={() => canvasRef.current?.undo()}
-        className="rounded-sm border border-ink/10 px-2 py-1.5 font-sans text-[10px] text-ink/70 hover:border-ink/25"
-      >
-        撤销
-      </button>
-      <p className="px-1 font-sans text-[9px] text-stone/60">⌘Z / Ctrl+Z</p>
-      <button
-        type="button"
-        aria-label="清空"
-        onClick={onClear}
-        className="rounded-sm border border-ink/10 px-2 py-1.5 font-sans text-[10px] text-cinnabar/80 hover:border-cinnabar/30"
-      >
-        清空
-      </button>
-    </div>
-  );
-}
+      {confirmClear && (
+        <ConfirmDialog
+          title={t("color.clearTitle")}
+          body={t("color.clearBody")}
+          cancelLabel={t("color.cancel")}
+          confirmLabel={t("color.clear")}
+          onCancel={() => setConfirmClear(false)}
+          onConfirm={() => {
+            canvasRef.current?.clearPaint();
+            setConfirmClear(false);
+          }}
+        />
+      )}
 
-function ConfirmModal({
-  title,
-  onConfirm,
-  onCancel,
-  confirmLabel = "确定",
-  cancelLabel = "取消",
-}: {
-  title: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  confirmLabel?: string;
-  cancelLabel?: string;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4">
-      <div className="w-full max-w-sm rounded-sm border border-ink/10 bg-rice p-6">
-        <p className="font-serif text-sm text-ink">{title}</p>
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-sm border border-ink/15 py-2 font-sans text-xs text-ink"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="flex-1 rounded-sm bg-cinnabar py-2 font-sans text-xs text-rice"
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoModal({
-  title,
-  body,
-  onClose,
-}: {
-  title: string;
-  body: string;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="max-w-md rounded-sm border border-ink/10 bg-rice p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-serif text-lg text-ink">{title}</h3>
-        <p className="mt-3 font-serif text-sm leading-relaxed text-ink/75">
-          {body}
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-4 rounded-sm border border-ink/15 px-4 py-2 font-sans text-xs text-ink"
-        >
-          关闭
-        </button>
-      </div>
+      {postcardPreview && (
+        <PostcardPreview
+          imageDataUrl={postcardPreview}
+          title={`${artwork.templeName} · ${artwork.figureName}`}
+          stars={similarity?.stars ?? 1}
+          onClose={() => setPostcardPreview(null)}
+          onDownload={() =>
+            downloadDataUrl(
+              postcardPreview,
+              `${artwork.figureName}-postcard.png`
+            )
+          }
+        />
+      )}
     </div>
   );
 }

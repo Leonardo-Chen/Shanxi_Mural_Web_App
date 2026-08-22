@@ -71,3 +71,11 @@ export function deltaE2000(
 export function regionSimilarityFromDeltaE(deltaE: number): number {
   return Math.max(0, 1 - deltaE / 35);
 }
+
+export function scoreToStars(score: number): number {
+  if (score >= 85) return 5;
+  if (score >= 70) return 4;
+  if (score >= 55) return 3;
+  if (score >= 35) return 2;
+  return 1;
+}

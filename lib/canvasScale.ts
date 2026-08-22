@@ -217,3 +217,102 @@ export function getTempleGridCenter(templeId: string): { x: number; y: number } 
     y: DESKTOP.height / 2,
   };
 }
+
+const CARD_ASPECT = GRID_CARD.width / GRID_CARD.height;
+
+function chooseFittedGrid(
+  count: number,
+  availW: number,
+  availH: number,
+  isMobile: boolean
+) {
+  const gapX = isMobile ? 16 : 24;
+  const gapY = isMobile ? 16 : 24;
+  const maxCardW = isMobile ? 168 : 220;
+  const minCardW = 72;
+  const maxCols = Math.min(count, isMobile ? 3 : 6);
+
+  let best = {
+    cols: 1,
+    rows: count,
+    cardW: minCardW,
+    cardH: minCardW / CARD_ASPECT,
+    gapX,
+    gapY,
+  };
+
+  for (let cols = 1; cols <= maxCols; cols += 1) {
+    const rows = Math.ceil(count / cols);
+    const widthLimit = (availW - (cols - 1) * gapX) / cols;
+    const heightLimit = (availH - (rows - 1) * gapY) / rows;
+    const cardW = Math.min(maxCardW, widthLimit, heightLimit * CARD_ASPECT);
+    if (cardW < minCardW) continue;
+    if (cardW > best.cardW) {
+      best = {
+        cols,
+        rows,
+        cardW,
+        cardH: cardW / CARD_ASPECT,
+        gapX,
+        gapY,
+      };
+    }
+  }
+
+  return best;
+}
+
+/** 把寺庙壁画铺进当前视口，进入时全部落在屏幕范围内。 */
+export function layoutCenteredCardGrid(
+  cards: MuralCardData[],
+  isMobile: boolean,
+  viewport: { width: number; height: number } = { width: 1280, height: 800 }
+): {
+  cards: MuralCardData[];
+  canvas: { width: number; height: number };
+  center: { x: number; y: number };
+} {
+  const insetTop = isMobile ? 96 : 112;
+  const insetBottom = 28;
+  const insetX = isMobile ? 20 : 48;
+  const canvas = {
+    width: Math.max(1, Math.round(viewport.width)),
+    height: Math.max(1, Math.round(viewport.height)),
+  };
+  const availW = Math.max(200, canvas.width - insetX * 2);
+  const availH = Math.max(200, canvas.height - insetTop - insetBottom);
+
+  if (cards.length === 0) {
+    return {
+      cards: [],
+      canvas,
+      center: { x: canvas.width / 2, y: canvas.height / 2 },
+    };
+  }
+
+  const grid = chooseFittedGrid(cards.length, availW, availH, isMobile);
+  const cardW = Math.round(grid.cardW);
+  const cardH = Math.round(grid.cardH);
+  const gridW = grid.cols * cardW + (grid.cols - 1) * grid.gapX;
+  const gridH = grid.rows * cardH + (grid.rows - 1) * grid.gapY;
+  const startX = Math.round((canvas.width - gridW) / 2);
+  const startY = Math.round(insetTop + Math.max(0, availH - gridH) / 2);
+
+  return {
+    cards: cards.map((card, index) => {
+      const col = index % grid.cols;
+      const row = Math.floor(index / grid.cols);
+      return {
+        ...card,
+        x: startX + col * (cardW + grid.gapX),
+        y: startY + row * (cardH + grid.gapY),
+        width: cardW,
+        height: cardH,
+        rotation: 0,
+        depth: 0.8,
+      };
+    }),
+    canvas,
+    center: { x: canvas.width / 2, y: canvas.height / 2 },
+  };
+}
