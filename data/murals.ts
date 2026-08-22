@@ -60,6 +60,14 @@ export function toUiMural(mural: ManifestMural): Mural {
 export const murals: Mural[] = availableMurals.map(toUiMural);
 export const muralMap = new Map(murals.map((mural) => [mural.id, mural]));
 
+export function getMuralsByTempleId(templeId: string): Mural[] {
+  return murals.filter((mural) => mural.templeId === templeId);
+}
+
+export function templeHasMurals(templeId: string): boolean {
+  return murals.some((mural) => mural.templeId === templeId);
+}
+
 export function figureFromManifestElement(
   cover: CoverElement,
   element: MuralElement

@@ -96,6 +96,13 @@ export function locTemple(locale: Locale, temple: Temple): Temple {
   };
 }
 
+export function locTemplePinName(locale: Locale, temple: Temple): string {
+  const copy = templesI18n[temple.id];
+  if (copy?.pinName) return pickL(locale, copy.pinName, temple.name);
+  const name = locTemple(locale, temple).name;
+  return name.replace(/\s*\([^)]*\)/g, "").trim();
+}
+
 export function locMural(locale: Locale, mural: Mural): Mural {
   const o = muralOverlays[mural.id];
   return {

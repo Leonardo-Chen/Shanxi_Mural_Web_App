@@ -2,6 +2,7 @@ import type { LText } from "./pick";
 
 export type TempleCopy = {
   name: LText;
+  pinName?: LText;
   tagline: LText;
   description: LText;
 };
@@ -126,6 +127,7 @@ export const templesI18n: Record<string, TempleCopy> = {
   },
   sandaiwang: {
     name: { zh: "三大王庙", en: "Sandaiwang Temple", it: "Tempio Sandaiwang" },
+    pinName: { zh: "三大王庙", en: "Sandaiwang", it: "Sandaiwang" },
     tagline: {
       zh: "桑干河畔的拓跋大王描金壁画",
       en: "Gilded murals of the Tuoba kings beside the Sanggan River",
@@ -181,6 +183,11 @@ export const templesI18n: Record<string, TempleCopy> = {
       zh: "广灵水神堂",
       en: "Guangling Shuishentang (Water God Temple)",
       it: "Shuishentang di Guangling (Tempio del Dio dell’Acqua)",
+    },
+    pinName: {
+      zh: "水神堂",
+      en: "Water God Temple",
+      it: "Tempio dell’Acqua",
     },
     tagline: {
       zh: "圣母殿东西两壁，画龙母出宫布雨与雨后归宫。",

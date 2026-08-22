@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
 import { useDrag } from "@use-gesture/react";
+import { gsap } from "gsap";
 import { useCanvasBounds } from "./useCanvasBounds";
 import { useReducedMotion } from "./useReducedMotion";
 
@@ -22,8 +22,8 @@ export interface UseDraggableCanvasOptions {
   onPositionChange?: (pos: CanvasPosition) => void;
 }
 
-const FRICTION = 0.92;
-const MIN_VELOCITY = 0.5;
+const FRICTION = 0.95;
+const MIN_VELOCITY = 0.15;
 
 export function useDraggableCanvas({
   canvasWidth,
@@ -48,6 +48,8 @@ export function useDraggableCanvas({
   const inertiaFrameRef = useRef<number | null>(null);
   const dragStartRef = useRef<CanvasPosition>({ x: 0, y: 0 });
   const zoomRafRef = useRef<number | null>(null);
+  const panTweenRef = useRef<gsap.core.Tween | null>(null);
+  const hasDraggedRef = useRef(false);
 
   const { applyEdgeResistance, clampPosition, clampForScale } =
     useCanvasBounds({
@@ -118,35 +120,37 @@ export function useDraggableCanvas({
       cancelAnimationFrame(inertiaFrameRef.current);
       inertiaFrameRef.current = null;
     }
+    velocityRef.current = { x: 0, y: 0 };
   }, []);
 
-  const startInertia = useCallback(() => {
-    if (reducedMotion) return;
-
+  const runInertia = useCallback(() => {
     const tick = () => {
       velocityRef.current.x *= FRICTION;
       velocityRef.current.y *= FRICTION;
-
-      if (
-        Math.abs(velocityRef.current.x) < MIN_VELOCITY &&
-        Math.abs(velocityRef.current.y) < MIN_VELOCITY
-      ) {
-        stopInertia();
+      const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
+      if (speed < MIN_VELOCITY) {
+        inertiaFrameRef.current = null;
+        velocityRef.current = { x: 0, y: 0 };
         return;
       }
-
-      const nextX = positionRef.current.x + velocityRef.current.x;
-      const nextY = positionRef.current.y + velocityRef.current.y;
-      updatePosition(nextX, nextY);
+      applyPosition(
+        positionRef.current.x + velocityRef.current.x,
+        positionRef.current.y + velocityRef.current.y
+      );
       inertiaFrameRef.current = requestAnimationFrame(tick);
     };
-
-    stopInertia();
     inertiaFrameRef.current = requestAnimationFrame(tick);
-  }, [reducedMotion, stopInertia, updatePosition]);
+  }, [applyPosition]);
 
   const bind = useDrag(
-    ({ movement: [mx, my], velocity: [vx, vy], last, first, event }) => {
+    ({
+      event,
+      movement: [mx, my],
+      velocity: [vx, vy],
+      direction: [dirX, dirY],
+      last,
+      first,
+    }) => {
       if (!enabled) return;
 
       const target = event?.target as HTMLElement | undefined;
@@ -158,22 +162,29 @@ export function useDraggableCanvas({
 
       if (first) {
         stopInertia();
+        panTweenRef.current?.kill();
         setIsDragging(true);
+        hasDraggedRef.current = false;
         dragStartRef.current = { ...positionRef.current };
       }
 
-      updatePosition(
-        dragStartRef.current.x + mx,
-        dragStartRef.current.y + my
-      );
+      if (Math.hypot(mx, my) > 3) {
+        hasDraggedRef.current = true;
+      }
+
+      applyPosition(dragStartRef.current.x + mx, dragStartRef.current.y + my);
 
       if (last) {
         setIsDragging(false);
-        velocityRef.current = {
-          x: vx * 15,
-          y: vy * 15,
-        };
-        startInertia();
+        if (Math.hypot(mx, my) > 5 && !reducedMotion) {
+          velocityRef.current = {
+            x: vx * dirX * 18,
+            y: vy * dirY * 18,
+          };
+          runInertia();
+        } else {
+          velocityRef.current = { x: 0, y: 0 };
+        }
       }
     },
     {
@@ -181,8 +192,6 @@ export function useDraggableCanvas({
       pointer: { touch: true },
     }
   );
-
-  const panTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const navigateTo = useCallback(
     (
@@ -344,5 +353,6 @@ export function useDraggableCanvas({
     maxZoom,
     cancelPan,
     resetView,
+    hasDraggedRef,
   };
 }

@@ -18,6 +18,9 @@ interface MuralCardProps {
   priority?: boolean;
   introVisible?: boolean;
   isDragging?: boolean;
+  focusing?: boolean;
+  muted?: boolean;
+  onOutlineComplete?: (cardId: string) => void;
 }
 
 function MuralCardInner({
@@ -29,11 +32,15 @@ function MuralCardInner({
   priority = false,
   introVisible = false,
   isDragging = false,
+  focusing = false,
+  muted = false,
+  onOutlineComplete,
 }: MuralCardProps) {
   const reducedMotion = useReducedMotion();
   const { locale } = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const depthFactor = 1 - card.depth * 0.08;
   // 拖动时关闭视差，避免卡片/图片相对画布“单独滑动”
@@ -53,10 +60,25 @@ function MuralCardInner({
       ? "none"
       : "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease";
 
-  const handleClick = useCallback(() => {
-    if (card.type === "annotation" || !cardRef.current) return;
-    onSelect(card.id, cardRef.current);
-  }, [card, onSelect]);
+  const handlePointerDown = useCallback((event: React.PointerEvent) => {
+    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+  }, []);
+
+  const handleClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (card.type === "annotation" || !cardRef.current) return;
+      const start = pointerStartRef.current;
+      pointerStartRef.current = null;
+      if (
+        start &&
+        Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6
+      ) {
+        return;
+      }
+      onSelect(card.id, cardRef.current);
+    },
+    [card, onSelect]
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -94,23 +116,77 @@ function MuralCardInner({
         tabIndex={isDetailOpen && !isSelected ? -1 : 0}
         aria-label={`${copy.name}，${copy.region}，${copy.era}`}
         onClick={handleClick}
+        onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="absolute cursor-pointer will-change-transform"
+        className="absolute cursor-pointer will-change-transform grid__item"
         style={{
-          left: card.x,
-          top: card.y,
           width: card.width,
           height: card.height,
-          transform: `translate(${parallaxX}px, ${parallaxY}px) rotate(${rotation}deg) scale(${scale})`,
+          transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
           zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
           opacity: introVisible ? 0 : 1,
           transition: transformTransition,
           pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
         }}
       >
-        <TempleCardContent temple={copy} isHovered={isHovered} priority={priority} />
+        <div className="grid__itemCard h-full w-full">
+          <TempleCardContent temple={temple} isHovered={isHovered} priority={priority} />
+          {/* Back structure referencing user's design */}
+          <div className="grid__itemBack pointer-events-none opacity-0 hidden">
+            <div className="grid__itemClose pointer"></div>
+            <div className="grid__itemThumb">
+              <picture className="grid__itemThumbInner">
+                <img src={temple.image} alt={temple.name} />
+              </picture>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (card.type === "mural") {
+    const mural = muralById[card.muralId];
+    const copy = mural ? locAnnotationMural(locale, mural) : null;
+    const title = copy?.displayTitle ?? card.title;
+    const lift = isHovered || isSelected || focusing;
+
+    return (
+      <div
+        ref={cardRef}
+        data-card-interactive
+        data-flip-id={card.id}
+        role="button"
+        tabIndex={isDetailOpen && !isSelected ? -1 : 0}
+        aria-label={title}
+        onClick={handleClick}
+        onPointerDown={handlePointerDown}
+        onKeyDown={handleKeyDown}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="absolute cursor-pointer will-change-transform"
+        style={{
+          width: card.width,
+          height: card.height,
+          transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${
+            focusing ? depthFactor * 1.04 : scale
+          })`,
+          zIndex: lift ? 30 : Math.round(card.depth * 20),
+          opacity: introVisible ? 0 : muted ? 0.42 : 1,
+          transition: transformTransition,
+          pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
+        }}
+      >
+        <ExploreMuralCardContent
+          title={title}
+          hall={copy?.hall ?? card.hall}
+          period={copy?.dynasty ?? card.period}
+          image={mural?.imageSrc ?? card.image}
+          imageAlt={title}
+          isHovered={isHovered}
+        />
       </div>
     );
   }
@@ -130,16 +206,15 @@ function MuralCardInner({
       tabIndex={isDetailOpen && !isSelected ? -1 : 0}
       aria-label={storyTitle}
       onClick={handleClick}
+      onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="absolute cursor-pointer will-change-transform"
+      className="absolute cursor-pointer will-change-transform grid__item"
       style={{
-        left: card.x,
-        top: card.y,
         width: card.width,
         height: card.height,
-        transform: `translate(${parallaxX}px, ${parallaxY}px) rotate(${rotation}deg) scale(${scale})`,
+        transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
         zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
         opacity: introVisible ? 0 : 1,
         transition: transformTransition,
@@ -166,12 +241,15 @@ function TempleCardContent({
   isHovered: boolean;
   priority: boolean;
 }) {
+  const { locale } = useLocale();
+  const copy = locTemple(locale, temple);
+
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-sm bg-rice/60 shadow-[0_2px_12px_rgba(38,36,31,0.08)]">
-      <div className="relative flex-1 overflow-hidden">
+      <div className="grid__itemPicture relative flex-1 overflow-hidden">
         <Image
-          src={temple.image}
-          alt={temple.imageAlt}
+          src={copy.image}
+          alt={copy.imageAlt}
           fill
           sizes="(max-width: 768px) 200px, 320px"
           priority={priority}
@@ -181,15 +259,64 @@ function TempleCardContent({
         />
       </div>
       <div className="px-3 py-2.5">
-        <h3 className="font-serif text-base text-ink">{temple.name}</h3>
+        <h3 className="font-serif text-base text-ink">{copy.name}</h3>
         <p className="mt-0.5 font-sans text-[10px] tracking-wider text-stone">
-          {temple.region} · {temple.era}
+          {copy.region} · {copy.era}
         </p>
         {(isHovered || priority) && (
           <p className="mt-1.5 font-serif text-[11px] leading-snug text-ink/65">
-            {temple.tagline}
+            {copy.tagline}
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ExploreMuralCardContent({
+  title,
+  hall,
+  period,
+  image,
+  imageAlt,
+  isHovered,
+}: {
+  title: string;
+  hall?: string;
+  period?: string;
+  image?: string;
+  imageAlt: string;
+  isHovered: boolean;
+}) {
+  const meta = [hall, period].filter(Boolean).join(" · ");
+
+  return (
+    <div className="group flex h-full flex-col overflow-hidden rounded-md bg-rice/50 shadow-[0_1px_8px_rgba(38,36,31,0.06)]">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-md bg-[#C5BDB1]">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt={imageAlt}
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
+            style={{ WebkitUserDrag: "none" } as React.CSSProperties}
+          />
+        ) : null}
+      </div>
+      <div className="shrink-0 px-3 py-2.5">
+        <p
+          className={`font-serif text-[12px] leading-snug text-ink/80 transition-colors ${
+            isHovered ? "text-ink" : ""
+          }`}
+        >
+          {title}
+        </p>
+        {meta ? (
+          <p className="mt-1 font-sans text-[10px] tracking-wide text-stone/60">
+            {meta}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -221,11 +348,11 @@ function StoryCardContent({
           style={{ WebkitUserDrag: "none" } as React.CSSProperties}
         />
       </div>
-      <div className="shrink-0 px-3 py-2.5">
+      <div className="flex-1 flex items-center justify-start px-3 py-2">
         <p
-          className={`font-serif text-[12px] leading-snug text-ink/80 transition-colors ${
-            isHovered ? "text-ink" : ""
-          }`}
+          className={`font-serif text-[12px] leading-[1.4] text-ink/80 transition-colors ${
+            isHovered ? "text-ink font-semibold" : ""
+          } line-clamp-4 text-left`}
         >
           {title}
         </p>

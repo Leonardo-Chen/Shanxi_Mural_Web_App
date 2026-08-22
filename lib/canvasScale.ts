@@ -86,6 +86,13 @@ function mod(n: number, m: number) {
   return ((n % m) + m) % m;
 }
 
+function gridColumnCount(count: number) {
+  if (count <= 1) return 1;
+  if (count === 2) return 2;
+  if (count <= 9) return 3;
+  return 4;
+}
+
 /**
  * 寺庙卡片模板：等大、排序后的原型（不含坐标）
  */
@@ -96,6 +103,7 @@ export function getTempleCardTemplates(
   return cards
     .filter((c) => c.type !== "annotation" && c.templeId === templeId)
     .sort((a, b) => {
+      if (a.type === "mural" && b.type === "mural") return 0;
       if (a.type === "temple" && b.type !== "temple") return -1;
       if (b.type === "temple" && a.type !== "temple") return 1;
       return priorityRank(a.priority) - priorityRank(b.priority);
@@ -107,6 +115,92 @@ export function getTempleCardTemplates(
       rotation: 0,
       depth: 0.8,
     }));
+}
+
+export type TempleExploreLayout = {
+  cards: MuralCardData[];
+  canvas: { width: number; height: number };
+  center: { x: number; y: number };
+};
+
+/**
+ * 寺庙壁画页：壁画排在无限画布中心，可大范围拖动。
+ */
+export function layoutTempleExplore(
+  cards: MuralCardData[],
+  isMobile = false
+): TempleExploreLayout {
+  const { scaleX, scaleY } = getCanvasScale(isMobile);
+  const cardW = Math.round(GRID_CARD.width * scaleX);
+  const cardH = Math.round(GRID_CARD.height * scaleY);
+  const gapX = Math.round(GRID_GAP.x * scaleX);
+  const gapY = Math.round(GRID_GAP.y * scaleY);
+  const count = Math.max(cards.length, 1);
+  const cols = gridColumnCount(count);
+  const rows = Math.ceil(count / cols);
+  const gridW = cols * cardW + (cols - 1) * gapX;
+  const gridH = rows * cardH + (rows - 1) * gapY;
+  const canvas = scaleSize(TEMPLE_INFINITE_CANVAS, isMobile);
+  const center = scalePoint(TEMPLE_INFINITE_CENTER, isMobile);
+  const startX = Math.round(center.x - gridW / 2);
+  const startY = Math.round(center.y - gridH / 2);
+
+  return {
+    canvas,
+    center,
+    cards: cards.map((card, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      return {
+        ...card,
+        width: cardW,
+        height: cardH,
+        rotation: 0,
+        depth: 0.8,
+        x: startX + col * (cardW + gapX),
+        y: startY + row * (cardH + gapY),
+      };
+    }),
+  };
+}
+
+/**
+ * 把寺庙壁画排成有限网格，中心对准无限画布中点。
+ */
+export function layoutTempleGridCentered(
+  cards: MuralCardData[],
+  isMobile = false
+): MuralCardData[] {
+  if (cards.length === 0) return [];
+
+  const { scaleX, scaleY } = getCanvasScale(isMobile);
+  const cardW = Math.round(GRID_CARD.width * scaleX);
+  const cardH = Math.round(GRID_CARD.height * scaleY);
+  const gapX = Math.round(GRID_GAP.x * scaleX);
+  const gapY = Math.round(GRID_GAP.y * scaleY);
+  const cellW = cardW + gapX;
+  const cellH = cardH + gapY;
+  const cols = gridColumnCount(cards.length);
+  const rows = Math.ceil(cards.length / cols);
+  const gridW = cols * cardW + (cols - 1) * gapX;
+  const gridH = rows * cardH + (rows - 1) * gapY;
+  const center = scalePoint(TEMPLE_INFINITE_CENTER, isMobile);
+  const startX = Math.round(center.x - gridW / 2);
+  const startY = Math.round(center.y - gridH / 2);
+
+  return cards.map((card, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    return {
+      ...card,
+      width: cardW,
+      height: cardH,
+      rotation: 0,
+      depth: 0.8,
+      x: startX + col * cellW,
+      y: startY + row * cellH,
+    };
+  });
 }
 
 /**

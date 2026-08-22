@@ -37,7 +37,7 @@ const zh = {
   "explore.backToMap": "← 返回地图",
 
   "map.title": "山西寺观地图",
-  "map.hint": "点选广灵水神堂、多福寺或永乐宫，再从右侧进入 · 滚轮缩放 · 拖动平移",
+  "map.hint": "点选广灵水神堂、多福寺或永乐宫，从右侧进入 · 滚轮缩放 · 拖动平移",
   "map.loadError": "地图加载失败，请刷新重试",
   "map.loading": "正在展开山西…",
   "map.enter": "进入查看壁画",
@@ -49,6 +49,7 @@ const zh = {
   "map.templeCount": "{count} 座寺观",
   "map.selected": "当前选中",
   "map.clickEntrance": "点击查看入口",
+  "map.chooseSticker": "选择其他贴纸",
 
   "intro.aria": "欢迎",
   "intro.desc1": "从一个人物开始，",
@@ -308,8 +309,7 @@ const en: Record<MessageKey, string> = {
   "explore.backToMap": "← Back to map",
 
   "map.title": "Shanxi Temple Map",
-  "map.hint":
-    "Select Guangling Water God Temple, Duofu Temple or Yongle Palace, then enter from the right · scroll to zoom · drag to pan",
+  "map.hint": "Select a temple, then enter from the right · scroll to zoom · drag to pan",
   "map.loadError": "The map failed to load. Please refresh and try again.",
   "map.loading": "Unfolding Shanxi…",
   "map.enter": "Enter to view murals",
@@ -321,6 +321,7 @@ const en: Record<MessageKey, string> = {
   "map.templeCount": "{count} temples",
   "map.selected": "currently selected",
   "map.clickEntrance": "click to view entrance",
+  "map.chooseSticker": "Choose another sticker",
 
   "intro.aria": "Welcome",
   "intro.desc1": "Begin with a figure",
@@ -583,8 +584,7 @@ const it: Record<MessageKey, string> = {
   "explore.backToMap": "← Torna alla mappa",
 
   "map.title": "Mappa dei templi dello Shanxi",
-  "map.hint":
-    "Seleziona il Tempio del Dio dell'Acqua di Guangling, il Tempio Duofu o il Palazzo Yongle, poi entra da destra · rotella per lo zoom · trascina per spostarti",
+  "map.hint": "Scegli un tempio, poi entra da destra · rotella per lo zoom · trascina per spostarti",
   "map.loadError": "Caricamento della mappa non riuscito. Aggiorna e riprova.",
   "map.loading": "Lo Shanxi si sta aprendo…",
   "map.enter": "Entra per vedere gli affreschi",
@@ -596,6 +596,7 @@ const it: Record<MessageKey, string> = {
   "map.templeCount": "{count} templi",
   "map.selected": "attualmente selezionato",
   "map.clickEntrance": "clicca per l'ingresso",
+  "map.chooseSticker": "Scegli un altro sticker",
 
   "intro.aria": "Benvenuto",
   "intro.desc1": "Parti da una figura",

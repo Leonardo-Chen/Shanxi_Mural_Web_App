@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { templeAnchors } from "@/data/canvasLayout";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface MiniMapProps {
   canvasWidth: number;
@@ -23,6 +24,7 @@ export default function MiniMap({
   position,
   onNavigate,
 }: MiniMapProps) {
+  const { t } = useLocale();
   const scaleX = MAP_W / canvasWidth;
   const scaleY = MAP_H / canvasHeight;
 
@@ -55,7 +57,7 @@ export default function MiniMap({
     <div
       className="pointer-events-auto fixed bottom-5 right-5 z-40 hidden md:block md:bottom-6 md:right-6"
       role="img"
-      aria-label="画布缩略地图"
+      aria-label={t("minimap.aria")}
     >
       <svg
         width={MAP_W}
@@ -65,7 +67,7 @@ export default function MiniMap({
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        aria-label="点击缩略地图快速移动"
+        aria-label={t("minimap.click")}
       >
         {/* Temple dots */}
         {Object.entries(templeAnchors).map(([id, anchor]) => (

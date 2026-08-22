@@ -9,12 +9,13 @@ import DetailOverlay, { type DetailContent } from "./DetailOverlay";
 import FixedNavigation from "./FixedNavigation";
 import NavPanel, { type NavSection } from "./NavPanel";
 import DragIndicator from "./DragIndicator";
-import MiniMap, { MobilePositionIndicator } from "./MiniMap";
+import { MobilePositionIndicator } from "./MiniMap";
 import MuralExperience from "./mural/MuralExperience";
 import MuralMatchingExperience from "./matching/MuralMatchingExperience";
 import type { CoverElement } from "@/data/coverElements";
 import { muralCards, muralCardMap, type MuralCardData } from "@/data/muralCards";
 import { templeMap } from "@/data/temples";
+import { templeHasMurals } from "@/data/murals";
 import { canvasLayout } from "@/data/canvasLayout";
 import {
   scaleCards,
@@ -44,7 +45,6 @@ function filterCardsForTemple(
   isMobile: boolean
 ): MuralCardData[] {
   if (templeId) {
-    // 寺庙画布：该寺全部卡片，等大网格展示（含移动端）
     return muralCards.filter(
       (card) => card.type !== "annotation" && card.templeId === templeId
     );
@@ -75,6 +75,7 @@ export default function MuralHomepage() {
   const [matchingSourceRect, setMatchingSourceRect] = useState<DOMRect | null>(
     null
   );
+  const [mapFocusTempleId, setMapFocusTempleId] = useState<string | null>(null);
   const [navSection, setNavSection] = useState<NavSection | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [viewport, setViewport] = useState({ width: 1280, height: 800 });
@@ -92,7 +93,6 @@ export default function MuralHomepage() {
     null
   );
   const postcardOfferedRef = useRef(false);
-
   const pendingFocusRef = useRef<{ x: number; y: number } | null>(null);
 
   const { captureFlipState, animateClose } = useCardTransition();
@@ -118,6 +118,20 @@ export default function MuralHomepage() {
       : canvasLayout.initialViewport;
   }, [isMobile, templeExplore]);
 
+  const handleCanvasPositionChange = useCallback(
+    (pos: { x: number; y: number }) => {
+      const dx = pos.x - lastPosRef.current.x;
+      const dy = pos.y - lastPosRef.current.y;
+      lastPosRef.current = pos;
+      if (parallaxRafRef.current != null) return;
+      parallaxRafRef.current = window.requestAnimationFrame(() => {
+        parallaxRafRef.current = null;
+        setParallaxOffset({ x: dx, y: dy });
+      });
+    },
+    []
+  );
+
   const {
     position,
     isDragging,
@@ -125,24 +139,17 @@ export default function MuralHomepage() {
     viewportSize,
     bind,
     navigateTo,
+    cancelPan,
+    hasDraggedRef,
   } = useDraggableCanvas({
     canvasWidth: canvasSize.width,
     canvasHeight: canvasSize.height,
     initialCenter,
     enabled: phase === "explore" && !detailContent && !navSection,
-    onPositionChange: (pos) => {
-      const dx = pos.x - lastPosRef.current.x;
-      const dy = pos.y - lastPosRef.current.y;
-      lastPosRef.current = pos;
-      if (parallaxRafRef.current !== null) return;
-      parallaxRafRef.current = requestAnimationFrame(() => {
-        setParallaxOffset({ x: dx, y: dy });
-        parallaxRafRef.current = null;
-      });
-    },
+    allowDragFromInteractive: true,
+    onPositionChange: handleCanvasPositionChange,
   });
 
-  // 拖动结束时清零视差，避免残留偏移
   useEffect(() => {
     if (!isDragging) {
       setParallaxOffset({ x: 0, y: 0 });
@@ -173,6 +180,7 @@ export default function MuralHomepage() {
     (templeId: string, focus?: { x: number; y: number }) => {
       pendingFocusRef.current = focus ?? null;
       setSelectedTempleId(templeId);
+      setMapFocusTempleId(templeId);
       setNavSection(null);
       setDetailContent(null);
       setSelectedCardId(null);
@@ -182,18 +190,6 @@ export default function MuralHomepage() {
     },
     []
   );
-
-  const openTempleOnMap = useCallback((templeId: string) => {
-    pendingFocusRef.current = null;
-    setSelectedTempleId(templeId);
-    setNavSection(null);
-    setDetailContent(null);
-    setSelectedCardId(null);
-    setMatchingFigureId(null);
-    setMatchingCoverElement(null);
-    setMatchingSourceRect(null);
-    setPhase("map");
-  }, []);
 
   const handleCoverComplete = useCallback(() => {
     setPhase("home");
@@ -210,6 +206,19 @@ export default function MuralHomepage() {
     },
     []
   );
+
+  const openTempleOnMap = useCallback((templeId: string) => {
+    pendingFocusRef.current = null;
+    setSelectedTempleId(templeId);
+    setMapFocusTempleId(templeId);
+    setNavSection(null);
+    setDetailContent(null);
+    setSelectedCardId(null);
+    setMatchingFigureId(null);
+    setMatchingCoverElement(null);
+    setMatchingSourceRect(null);
+    setPhase("map");
+  }, []);
 
   const goHome = useCallback(() => {
     setDetailContent(null);
@@ -275,13 +284,15 @@ export default function MuralHomepage() {
   }, [pendingPostcard, redeemPostcard]);
 
   const handleBackToMap = useCallback(() => {
+    const templeId = selectedTempleId;
     setDetailContent(null);
     setSelectedCardId(null);
     setNavSection(null);
     setSelectedTempleId(null);
     pendingFocusRef.current = null;
+    setMapFocusTempleId(templeId);
     setPhase("map");
-  }, []);
+  }, [selectedTempleId]);
 
   useEffect(() => {
     if (phase !== "explore" || !selectedTempleId || !initialized) return;
@@ -314,7 +325,6 @@ export default function MuralHomepage() {
       return;
     }
 
-    // 寺庙页卡片数量固定，可以做一次入场
     if (selectedTempleId) {
       setIntroVisible(false);
       const frame = requestAnimationFrame(() => {
@@ -376,6 +386,12 @@ export default function MuralHomepage() {
       captureFlipState(`[data-flip-id="${cardId}"]`);
       setSelectedCardId(cardId);
 
+      if (card.type === "mural") {
+        const mural = muralById[card.muralId];
+        if (mural) setDetailContent({ type: "mural", mural });
+        return;
+      }
+
       if (card.type === "story" && card.muralId) {
         const mural = muralById[card.muralId];
         if (mural) {
@@ -418,9 +434,11 @@ export default function MuralHomepage() {
       if (detailContent) {
         setDetailContent(null);
         setSelectedCardId(null);
+        cancelPan();
       }
       if (section === "temples" && phase !== "explore") {
         setNavSection(null);
+        setMapFocusTempleId(null);
         setPhase("map");
         return;
       }
@@ -430,7 +448,7 @@ export default function MuralHomepage() {
       }
       setNavSection((prev) => (prev === section ? null : section));
     },
-    [phase, detailContent]
+    [cancelPan, detailContent, phase]
   );
 
   const handleCloseNav = useCallback(() => {
@@ -439,31 +457,32 @@ export default function MuralHomepage() {
 
   const handleSelectTemple = useCallback(
     (templeId: string) => {
+      if (!templeHasMurals(templeId)) return;
       enterTempleExplore(templeId);
     },
     [enterTempleExplore]
   );
 
   useEffect(() => {
-    if (!detailContent && !navSection) return;
+    if (!detailContent && !navSection && !selectedCardId) {
+      return;
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (navSection) {
         setNavSection(null);
         return;
       }
-      if (detailContent) handleCloseDetail();
+      if (detailContent) {
+        handleCloseDetail();
+        return;
+      }
+      cancelPan();
+      setSelectedCardId(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detailContent, navSection, handleCloseDetail]);
-
-  const handleMinimapNavigate = useCallback(
-    (x: number, y: number) => {
-      navigateTo(x, y, true);
-    },
-    [navigateTo]
-  );
+  }, [cancelPan, detailContent, handleCloseDetail, navSection, selectedCardId]);
 
   if (!initialized && viewportSize.width === 0) {
     return (
@@ -510,9 +529,7 @@ export default function MuralHomepage() {
       />
 
       <MuralExperience
-        hidden={
-          phase === "matching" || phase === "map" || phase === "explore"
-        }
+        hidden={phase === "matching" || phase === "map" || phase === "explore"}
         mode={phase === "cover" ? "cover" : "home"}
         coverGeneration={coverGeneration}
         onCoverComplete={handleCoverComplete}
@@ -535,7 +552,8 @@ export default function MuralHomepage() {
       {phase === "map" && (
         <ShanxiMap
           onSelectTemple={handleSelectTemple}
-          focusTempleId={selectedTempleId}
+          focusTempleId={mapFocusTempleId}
+          onChooseSticker={goHome}
         />
       )}
 
@@ -555,6 +573,7 @@ export default function MuralHomepage() {
             parallaxOffset={parallaxOffset}
             isMobile={isMobile}
             activeTempleIds={activeTempleIds}
+            hasDraggedRef={hasDraggedRef}
           />
 
           {templeExplore && templeExplore.cards.length === 0 && (
@@ -566,24 +585,13 @@ export default function MuralHomepage() {
           <button
             type="button"
             onClick={handleBackToMap}
-            className="pointer-events-auto fixed left-5 top-20 z-40 rounded-sm border border-ink/15 bg-rice/80 px-3 py-2 font-sans text-[11px] tracking-wide text-ink/70 backdrop-blur-sm transition-colors hover:border-ink/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar md:left-6 md:top-24"
+            className="pointer-events-auto fixed left-5 top-24 z-40 max-w-[min(22rem,calc(100vw-2.5rem))] rounded-sm border border-ink/15 bg-rice/80 px-3 py-2 text-left font-sans text-[11px] leading-snug tracking-wide text-ink/70 backdrop-blur-sm transition-colors hover:border-ink/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar md:left-6 md:top-28"
           >
             {t("explore.backToMap")}
             {selectedTempleName ? ` · ${selectedTempleName}` : ""}
           </button>
 
           <DragIndicator visible={!detailContent && !navSection} />
-
-          {!isMobile && (
-            <MiniMap
-              canvasWidth={canvasSize.width}
-              canvasHeight={canvasSize.height}
-              viewportWidth={viewportSize.width}
-              viewportHeight={viewportSize.height}
-              position={position}
-              onNavigate={handleMinimapNavigate}
-            />
-          )}
 
           {isMobile && (
             <MobilePositionIndicator

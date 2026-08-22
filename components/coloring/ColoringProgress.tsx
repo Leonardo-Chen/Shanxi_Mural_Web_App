@@ -1,6 +1,7 @@
 "use client";
 
 import { regionCount } from "@/data/coloringRegions";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface ColoringProgressProps {
   coloredCount: number;
@@ -11,10 +12,12 @@ export default function ColoringProgress({
   coloredCount,
   completion,
 }: ColoringProgressProps) {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-2">
       <p className="font-sans text-[11px] text-stone">
-        已着色区域 {coloredCount} / {regionCount}
+        {t("color.progress", { colored: coloredCount, total: regionCount })}
       </p>
       <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
         <div
@@ -22,7 +25,9 @@ export default function ColoringProgress({
           style={{ width: `${completion}%` }}
         />
       </div>
-      <p className="font-sans text-[11px] text-ink/70">完成度 {completion}%</p>
+      <p className="font-sans text-[11px] text-ink/70">
+        {t("color.completion", { pct: completion })}
+      </p>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export default function CanvasInstruction({
   const { t } = useLocale();
 
   return (
-    <p className="max-w-[min(40rem,100%)] text-center font-serif text-[15px] leading-snug text-cinnabar md:text-lg lg:text-xl">
+    <p className="max-w-[min(40rem,100%)] text-balance text-center font-serif text-[13px] leading-snug text-cinnabar md:text-[15px]">
       {t(messageKey)}
     </p>
   );

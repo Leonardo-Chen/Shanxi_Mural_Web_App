@@ -9,6 +9,12 @@ import { templeMap } from "@/data/temples";
 import { elements, type ManifestMural } from "@/data/muralData";
 import Image from "next/image";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import {
+  locCoverAlt,
+  locCoverCategory,
+  locTemple,
+} from "@/lib/i18n/localize";
 import BoundedMuralViewer from "@/components/matching/BoundedMuralViewer";
 import MuralInfoPanel from "@/components/annotations/MuralInfoPanel";
 
@@ -32,6 +38,7 @@ export default function DetailOverlay({
   isMobile,
 }: DetailOverlayProps) {
   const reducedMotion = useReducedMotion();
+  const { locale, t } = useLocale();
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -55,6 +62,10 @@ export default function DetailOverlay({
   const isElement = content.type === "element" && content.element;
   const isTemple = content.type === "temple" && content.temple;
   const isStory = content.type === "story" && content.story;
+  const temple = isTemple ? locTemple(locale, content.temple!) : undefined;
+  const elementAlt = isElement
+    ? locCoverAlt(locale, content.element!.id, content.element!.alt)
+    : "";
 
   const title = isElement
     ? content.element!.alt
@@ -81,58 +92,82 @@ export default function DetailOverlay({
       : content.story!.detailImage;
 
   const imageAlt = isElement
-    ? content.element!.alt
+    ? elementAlt
     : isTemple
-      ? content.temple!.detailImageAlt
+      ? temple!.detailImageAlt
       : content.story!.detailImageAlt;
 
-  const templeName = isStory
-    ? templeMap[content.story!.templeId]?.name
+  const storyTemple = isStory
+    ? templeMap[content.story!.templeId]
+    : undefined;
+  const templeName = storyTemple
+    ? locTemple(locale, storyTemple).name
     : undefined;
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex ${
-        isMobile ? "items-end" : "items-center justify-center"
-      }`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-3`}
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={handleBackdropClick}
     >
+      {/* 嵌入式 entry 弹出放大特效 CSS */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes postcardPop {
+          0% {
+            opacity: 0;
+            transform: scale(0.35) rotate(-6deg) translateY(50px);
+          }
+          65% {
+            transform: scale(1.025) rotate(1deg) translateY(-5px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg) translateY(0);
+          }
+        }
+        .postcard-container {
+          animation: postcardPop 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+      `}} />
+
+      {/* 遮罩背景 */}
       <div
-        className="absolute inset-0 bg-ink/50 backdrop-blur-[3px]"
+        className="absolute inset-0 bg-ink/65 backdrop-blur-[4px]"
         style={{
           transition: reducedMotion ? "none" : "opacity 0.4s ease",
         }}
         aria-hidden="true"
       />
 
+      {/* 竖向明信片卡片 - 高度固定为 540px，宽度为 360px/380px，无内部滚动条，一页纸布局 */}
       <div
-        className={`relative z-10 flex w-full flex-col bg-rice shadow-2xl ${
+        className={`relative z-10 flex flex-col justify-between bg-[#F4EFE6] text-ink p-4 border border-ink/10 shadow-2xl rounded-sm postcard-container overflow-hidden ${
           isMobile
-            ? "max-h-[85vh] rounded-t-md"
-            : "mx-6 max-h-[90vh] max-w-3xl rounded-sm"
+            ? "h-[500px] w-[330px]"
+            : "h-[540px] w-[370px]"
         }`}
         style={{
-          animation: reducedMotion
-            ? "none"
-            : isMobile
-              ? "slideUp 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-              : "fadeScale 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+          boxShadow: "0 20px 50px rgba(38, 36, 31, 0.3), inset 0 0 40px rgba(139, 53, 46, 0.04)",
         }}
       >
+        {/* 顶部经典双细线明信片边框装饰 */}
+        <div className="absolute inset-2 pointer-events-none border border-ink/5 rounded-sm" />
+        <div className="absolute inset-2.5 pointer-events-none border border-dashed border-[#8B352E]/10 rounded-sm" />
+
+        {/* 关闭按钮 - 设计成一个古风的小圆盖戳记 */}
         <button
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-sm text-ink/60 transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
-          aria-label="关闭详情"
+          aria-label={t("detail.close")}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path
               d="M3 3L13 13M13 3L3 13"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
               strokeLinecap="round"
             />
           </svg>
@@ -161,12 +196,12 @@ export default function DetailOverlay({
         <div className="overflow-y-auto px-6 py-5 md:px-8 md:py-6">
           {isTemple && (
             <p className="font-sans text-[10px] tracking-[0.2em] text-stone">
-              {content.temple!.region} · {content.temple!.era}
+              {temple!.region} · {temple!.era}
             </p>
           )}
           {isElement && (
             <p className="font-sans text-[10px] tracking-[0.2em] text-stone">
-              {COVER_CATEGORY_LABELS[content.element!.category]} · {content.element!.id}
+              {locCoverCategory(locale, content.element!.category)} · {content.element!.id}
             </p>
           )}
           <h2 className="mt-1 font-serif text-xl text-ink md:text-2xl">
@@ -202,7 +237,7 @@ export default function DetailOverlay({
 
           {isStory && templeName && (
             <p className="mt-4 font-sans text-[10px] text-ink/40">
-              所属：{content.story!.templeId}
+              {t("detail.belongsTo", { id: templeName })}
             </p>
           )}
         </div>
@@ -280,18 +315,20 @@ function MuralExploreOverlay({
 function ActionButton({
   children,
   primary = false,
+  className = "",
 }: {
   children: React.ReactNode;
   primary?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
-      className={`rounded-sm px-5 py-2.5 font-sans text-xs tracking-wider transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-offset-2 focus-visible:ring-offset-rice ${
+      className={`rounded-xs px-3 font-serif text-[11px] tracking-widest transition-all duration-300 font-medium active:scale-97 shadow-sm flex items-center justify-center gap-1 ${
         primary
-          ? "bg-cinnabar text-rice hover:bg-cinnabar/90"
-          : "border border-ink/15 text-ink hover:border-ink/30"
-      }`}
+          ? "bg-[#8B352E] text-[#FDFBF7] hover:bg-[#8B352E]/90 border border-[#8B352E] hover:shadow-md"
+          : "border border-[#8B352E]/25 text-[#8B352E] hover:bg-[#8B352E]/5 hover:border-[#8B352E]/40 bg-white/40"
+      } ${className}`}
     >
       {children}
     </button>

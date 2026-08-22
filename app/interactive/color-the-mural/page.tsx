@@ -7,5 +7,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function ColorTheMuralPage() {
-  return <ColoringGamePage />;
+  return <ColoringGamePage key="freehand-paint" />;
 }

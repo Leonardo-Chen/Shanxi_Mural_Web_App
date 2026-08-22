@@ -1,4 +1,6 @@
-export type CardType = "temple" | "story" | "annotation";
+import { getMuralsByTempleId } from "./murals";
+
+export type CardType = "temple" | "story" | "annotation" | "mural";
 
 export interface MuralCardBase {
   id: string;
@@ -37,10 +39,22 @@ export interface AnnotationCardData extends MuralCardBase {
   text: string;
 }
 
+export interface ExploreMuralCardData extends MuralCardBase {
+  type: "mural";
+  templeId: string;
+  muralId: string;
+  title: string;
+  hall?: string;
+  period?: string;
+  image?: string;
+  imageAlt: string;
+}
+
 export type MuralCardData =
   | TempleCardData
   | StoryCardData
-  | AnnotationCardData;
+  | AnnotationCardData
+  | ExploreMuralCardData;
 
 export const muralCards: MuralCardData[] = [
   // ── 公主寺群落（中心） ──
@@ -495,6 +509,34 @@ export const muralCards: MuralCardData[] = [
     priority: "low",
   },
 ];
+
+export function getExploreCardsForTemple(templeId: string): MuralCardData[] {
+  const templeMurals = getMuralsByTempleId(templeId);
+  if (templeMurals.length > 0) {
+    return templeMurals.map((mural) => ({
+      id: `mural-${mural.id}`,
+      type: "mural" as const,
+      templeId,
+      muralId: mural.id,
+      title: mural.displayTitle,
+      hall: mural.hall,
+      period: mural.period,
+      image: mural.image,
+      imageAlt: mural.alt,
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 320,
+      rotation: 0,
+      depth: 0.8,
+      priority: "high" as const,
+    }));
+  }
+
+  return muralCards.filter(
+    (card) => card.type !== "annotation" && card.templeId === templeId
+  );
+}
 
 export const muralCardMap = Object.fromEntries(
   muralCards.map((c) => [c.id, c])

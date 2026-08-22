@@ -1,6 +1,8 @@
 "use client";
 
 import { coloringPalette } from "@/data/coloringPalette";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { locPigment } from "@/lib/i18n/localize";
 
 interface ColorPaletteProps {
   selectedId: string;
@@ -17,11 +19,12 @@ export default function ColorPalette({
   onCustomChange,
   compact = false,
 }: ColorPaletteProps) {
+  const { locale, t } = useLocale();
   return (
     <div
       className={`flex flex-col gap-1.5 ${compact ? "flex-row overflow-x-auto pb-1" : ""}`}
       role="listbox"
-      aria-label="传统色板"
+      aria-label={t("color.palette")}
     >
       {coloringPalette.map((c) => {
         const active = selectedId === c.id;
@@ -71,10 +74,10 @@ export default function ColorPalette({
               onSelect("custom", e.target.value);
             }}
             className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0"
-            aria-label="自选颜色"
+            aria-label={t("color.custom")}
           />
           {!compact && (
-            <span className="font-sans text-[10px] text-stone">自选颜色</span>
+            <span className="font-sans text-[10px] text-stone">{t("color.custom")}</span>
           )}
         </label>
       </div>

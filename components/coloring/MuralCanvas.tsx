@@ -20,6 +20,7 @@ import {
   type DrawingTool,
 } from "@/utils/drawingTools";
 import { loadImage } from "@/utils/maskProcessing";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export interface MuralCanvasHandle {
   getPaintCanvas: () => HTMLCanvasElement | null;
@@ -54,6 +55,7 @@ const MuralCanvas = forwardRef<MuralCanvasHandle, MuralCanvasProps>(
     },
     ref
   ) {
+    const { t } = useLocale();
     const containerRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const paperRef = useRef<HTMLCanvasElement>(null);
@@ -384,7 +386,7 @@ const MuralCanvas = forwardRef<MuralCanvasHandle, MuralCanvasProps>(
       >
         {loading && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-parchment/80">
-            <p className="font-sans text-sm text-stone">正在展开线稿…</p>
+            <p className="font-sans text-sm text-stone">{t("color.loadingLine")}</p>
           </div>
         )}
 
@@ -448,7 +450,7 @@ const MuralCanvas = forwardRef<MuralCanvasHandle, MuralCanvasProps>(
 
         {!loading && !masksLoaded && (
           <p className="absolute bottom-2 left-1/2 -translate-x-1/2 font-sans text-[10px] text-stone/60">
-            正在加载区域蒙版…
+            {t("color.loadingMask")}
           </p>
         )}
       </div>
