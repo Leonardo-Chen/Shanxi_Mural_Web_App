@@ -32,7 +32,7 @@ export default function MuralDetailOverlay({
     [mural.id]
   );
   const closeRef = useRef<HTMLButtonElement>(null);
-  const image = uiCopy.image || uiCopy.thumbnail || annotated?.imageSrc;
+  const image = uiCopy.thumbnail || uiCopy.image || annotated?.imageSrc;
 
   useEffect(() => {
     closeRef.current?.focus();

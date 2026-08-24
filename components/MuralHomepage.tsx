@@ -79,9 +79,6 @@ export default function MuralHomepage() {
   const [navSection, setNavSection] = useState<NavSection | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [viewport, setViewport] = useState({ width: 1280, height: 800 });
-  const [parallaxOffset, setParallaxOffset] = useState({ x: 0, y: 0 });
-  const lastPosRef = useRef({ x: 0, y: 0 });
-  const parallaxRafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [exploreSession, setExploreSession] = useState(0);
   const [exploreHintVisible, setExploreHintVisible] = useState(false);
@@ -130,26 +127,13 @@ export default function MuralHomepage() {
       : canvasLayout.initialViewport;
   }, [isMobile, templeExplore]);
 
-  const handleCanvasPositionChange = useCallback(
-    (pos: { x: number; y: number }) => {
-      const dx = pos.x - lastPosRef.current.x;
-      const dy = pos.y - lastPosRef.current.y;
-      lastPosRef.current = pos;
-      if (parallaxRafRef.current != null) return;
-      parallaxRafRef.current = window.requestAnimationFrame(() => {
-        parallaxRafRef.current = null;
-        setParallaxOffset({ x: dx, y: dy });
-      });
-    },
-    []
-  );
-
   const {
     position,
     isDragging,
     initialized,
     viewportSize,
     bind,
+    layerRef,
     navigateTo,
     cancelPan,
     hasDraggedRef,
@@ -164,14 +148,7 @@ export default function MuralHomepage() {
     initialCenter,
     enabled: phase === "explore" && !detailContent && !navSection,
     allowDragFromInteractive: true,
-    onPositionChange: handleCanvasPositionChange,
   });
-
-  useEffect(() => {
-    if (!isDragging) {
-      setParallaxOffset({ x: 0, y: 0 });
-    }
-  }, [isDragging]);
 
   const cards = useMemo(() => {
     if (templeExplore) return templeExplore.cards;
@@ -602,11 +579,12 @@ export default function MuralHomepage() {
             selectedCardId={selectedCardId}
             isDetailOpen={!!detailContent}
             introVisible={introVisible}
-            parallaxOffset={parallaxOffset}
+            parallaxOffset={{ x: 0, y: 0 }}
             isMobile={isMobile}
             activeTempleIds={activeTempleIds}
             hasDraggedRef={hasDraggedRef}
             zoom={zoom}
+            layerRef={layerRef}
           />
 
           {templeExplore && templeExplore.cards.length === 0 && (

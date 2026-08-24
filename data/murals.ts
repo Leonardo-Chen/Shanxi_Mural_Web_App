@@ -1,5 +1,6 @@
 import { coverElements, type CoverElement } from "./coverElements";
 import { getAssignedCoverElements } from "@/lib/coverSession";
+import { muralThumbnailSrc } from "./assetPathMap";
 import {
   availableMurals,
   getElementByAssetFile,
@@ -49,7 +50,7 @@ export function toUiMural(mural: ManifestMural): Mural {
     templeId: GROUP_TEMPLE_ID[mural.groupId] ?? mural.groupId,
     templeName: mural.temple,
     image: mural.imageSrc,
-    thumbnail: mural.imageSrc,
+    thumbnail: muralThumbnailSrc(mural.groupId, mural.assetFile) ?? mural.imageSrc,
     alt: `${mural.displayTitle ?? mural.title}，来自${mural.temple}`,
     period: mural.dynasty,
     location: mural.hall,

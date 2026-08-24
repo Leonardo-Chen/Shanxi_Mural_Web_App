@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useMemo } from "react";
+import { forwardRef, memo, useCallback, useMemo } from "react";
 import type { CoverElement } from "@/data/coverElements";
 import { getSlotDisplayState, PLACEHOLDER_TONES } from "@/data/coverElements";
 import OutlineAnimation from "./OutlineAnimation";
@@ -87,7 +87,7 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
         style={{
           width,
           height,
-          zIndex: selected || focusing
+          zIndex: selected
             ? 40
             : element.canvasPosition.zIndex ?? element.coverPosition.zIndex,
           pointerEvents: interactive ? "auto" : "none",
@@ -114,6 +114,7 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
               alt={element.alt}
               draggable={false}
               loading={phase === "cover" || (!isRepeat && imageNearCenter) ? "eager" : "lazy"}
+              decoding="async"
               className="h-full w-full select-none object-contain"
             />
           )}
@@ -133,4 +134,6 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
   }
 );
 
-export default MuralElement;
+MuralElement.displayName = "MuralElement";
+
+export default memo(MuralElement);

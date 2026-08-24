@@ -141,6 +141,24 @@ export function muralImageSrc(
   return encodePublicPath(["images", "murals", dir, matched]);
 }
 
+/** Matching / explore tiles: 1200px JPEG, not the 4x work masters. */
+export function muralThumbnailSrc(
+  groupId: string,
+  assetFile: string
+): string | undefined {
+  const dir = GROUP_MURAL_DIR[groupId];
+  if (!dir) return undefined;
+  const matched = matchExistingFile(assetFile, MURAL_FILES[dir] ?? []);
+  if (!matched) return undefined;
+  return encodePublicPath([
+    "images",
+    "murals",
+    "thumbs",
+    dir,
+    `${stem(matched)}.jpg`,
+  ]);
+}
+
 export function elementImageSrc(
   groupId: string,
   assetFile: string

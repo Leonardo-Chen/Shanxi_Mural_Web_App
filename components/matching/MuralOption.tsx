@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { Mural } from "@/data/murals";
 import type { MuralMatchingPosition } from "@/data/muralMatchingLayout";
 import OutlineAnimation from "@/components/mural/OutlineAnimation";
@@ -18,7 +19,7 @@ interface MuralOptionProps {
   onOutlineComplete?: (muralId: string) => void;
 }
 
-export default function MuralOption({
+function MuralOption({
   mural,
   layout,
   selected,
@@ -68,6 +69,7 @@ export default function MuralOption({
               draggable={false}
               loading="lazy"
               className="block h-full w-full select-none object-cover"
+              decoding="async"
             />
           ) : (
             <span
@@ -93,3 +95,5 @@ export default function MuralOption({
     </button>
   );
 }
+
+export default memo(MuralOption);

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { CoverElement } from "@/data/coverElements";
 import {
   CANVAS_TILE_OFFSETS,
@@ -16,14 +17,13 @@ interface CoverElementFieldProps {
   phase: "cover" | "explore";
   interactive: boolean;
   selectedId: string | null;
-  focusingId?: string | null;
   reducedMotion: boolean;
   registerRef: (id: string, node: HTMLDivElement | null) => void;
   onSelect: (id: string, node: HTMLDivElement) => void;
   onOutlineComplete: (id: string) => void;
 }
 
-export default function CoverElementField({
+function CoverElementField({
   elements,
   viewportWidth,
   canvasSize,
@@ -31,7 +31,6 @@ export default function CoverElementField({
   phase,
   interactive,
   selectedId,
-  focusingId = null,
   reducedMotion,
   registerRef,
   onSelect,
@@ -65,7 +64,6 @@ export default function CoverElementField({
               phase={phase}
               interactive={interactive}
               selected={origin && selectedId === element.id}
-              focusing={origin && focusingId === element.id}
               reducedMotion={reducedMotion}
               isRepeat={!origin}
               lockedPose={lockedPose}
@@ -78,3 +76,5 @@ export default function CoverElementField({
     </>
   );
 }
+
+export default memo(CoverElementField);

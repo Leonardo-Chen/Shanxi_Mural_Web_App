@@ -174,6 +174,9 @@ export default function MuralExperience({
     initialized,
     viewportSize,
     bind,
+    layerRef,
+    positionRef,
+    zoomRef,
     applyWheelZoom,
     navigateTo,
     cancelPan,
@@ -386,14 +389,16 @@ export default function MuralExperience({
 
       cancelPendingOpen();
       focusingIdRef.current = id;
+      node.style.zIndex = "40";
       setFocusingId(id);
 
+      const scale = zoomRef.current || 1;
+      const origin = positionRef.current;
       const rect = node.getBoundingClientRect();
-      const scale = zoom || 1;
 
       navigateTo(
-        (rect.left + rect.width / 2 - position.x) / scale,
-        (rect.top + rect.height / 2 - position.y) / scale,
+        (rect.left + rect.width / 2 - origin.x) / scale,
+        (rect.top + rect.height / 2 - origin.y) / scale,
         !reducedMotion,
         () => {
           if (focusingIdRef.current !== id) return;
@@ -406,11 +411,10 @@ export default function MuralExperience({
       cancelPendingOpen,
       mode,
       navigateTo,
-      position.x,
-      position.y,
+      positionRef,
       reducedMotion,
       selection,
-      zoom,
+      zoomRef,
     ]
   );
 
@@ -447,6 +451,13 @@ export default function MuralExperience({
 
   const handleCancelSelection = useCallback(() => {
     cancelPendingOpen();
+    const id = focusingIdRef.current ?? selection.selectedId;
+    if (id) {
+      const node = nodeMapRef.current.get(id);
+      if (node) node.style.zIndex = "";
+    }
+    focusingIdRef.current = null;
+    setFocusingId(null);
     selection.clear();
   }, [cancelPendingOpen, selection]);
 
@@ -605,6 +616,7 @@ export default function MuralExperience({
         hidden ? "hidden" : ""
       }`}
       data-canvas-mode={mode === "home" || transitioning ? "explore" : "cover"}
+      data-camera={focusingId ? "true" : undefined}
       aria-hidden={hidden}
     >
       {(mode === "cover" || transitioning) && (
@@ -631,16 +643,18 @@ export default function MuralExperience({
         }`}
         style={{
           touchAction: "none",
+          overscrollBehavior: "none",
           opacity: placed ? 1 : 0,
         }}
       >
         <div
+          ref={layerRef}
           className="absolute origin-top-left"
           style={{
             width: canvasConfig.width,
             height: canvasConfig.height,
             transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${zoom})`,
-            willChange: isDragging ? "transform" : "auto",
+            willChange: isDragging || focusingId ? "transform" : "auto",
           }}
         >
           <CoverElementField
@@ -655,7 +669,6 @@ export default function MuralExperience({
             phase={mode === "home" ? "explore" : "cover"}
             interactive={mode === "home" && !detailOpen}
             selectedId={selection.selectedId}
-            focusingId={focusingId}
             reducedMotion={reducedMotion}
             registerRef={registerRef}
             onSelect={handleSelect}

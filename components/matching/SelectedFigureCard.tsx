@@ -1,7 +1,6 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { gsap } from "gsap";
 import type { Figure } from "@/data/murals";
 import { locFigure } from "@/lib/i18n/localize";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -10,131 +9,161 @@ interface SelectedFigureCardProps {
   figure: Figure;
   sourceRect: DOMRect | null;
   reducedMotion: boolean;
+  onLanded?: () => void;
 }
 
 export default function SelectedFigureCard({
   figure,
   sourceRect,
   reducedMotion,
+  onLanded,
 }: SelectedFigureCardProps) {
   const { locale, t } = useLocale();
   const copy = locFigure(locale, figure);
   const cardRef = useRef<HTMLElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const flyerRef = useRef<HTMLImageElement>(null);
+  const landedRef = useRef(false);
+  const onLandedRef = useRef(onLanded);
+  onLandedRef.current = onLanded;
+
+  const canFly = Boolean(sourceRect && figure.image && !reducedMotion);
 
   useLayoutEffect(() => {
+    const finish = () => {
+      if (landedRef.current) return;
+      landedRef.current = true;
+      const card = cardRef.current;
+      const flyer = flyerRef.current;
+      if (card) card.style.opacity = "1";
+      if (flyer) {
+        flyer.style.opacity = "0";
+        flyer.style.visibility = "hidden";
+        flyer.style.willChange = "auto";
+      }
+      onLandedRef.current?.();
+    };
+
     const card = cardRef.current;
     if (!card) return;
 
-    if (reducedMotion || !sourceRect) {
-      gsap.set(card, { opacity: 1, clearProps: "transform" });
-      gsap.set(bodyRef.current, { opacity: 1, y: 0 });
+    if (!canFly || !sourceRect) {
+      card.style.opacity = "1";
+      finish();
       return;
     }
 
-    const target = card.getBoundingClientRect();
-    const dx =
-      sourceRect.left +
-      sourceRect.width / 2 -
-      (target.left + target.width / 2);
-    const dy =
-      sourceRect.top +
-      sourceRect.height / 2 -
-      (target.top + target.height / 2);
+    const flyer = flyerRef.current;
+    const slot = slotRef.current;
+    if (!flyer || !slot) {
+      card.style.opacity = "1";
+      finish();
+      return;
+    }
+
+    const dest = slot.getBoundingClientRect();
+    if (sourceRect.width < 8 || sourceRect.height < 8 || dest.width < 8) {
+      card.style.opacity = "1";
+      finish();
+      return;
+    }
+
+    card.style.opacity = "0";
     const scale = Math.min(
-      1.08,
-      Math.max(
-        0.58,
-        Math.min(
-          sourceRect.width / Math.max(target.width, 1),
-          sourceRect.height / Math.max(target.height, 1)
-        )
-      )
+      dest.width / sourceRect.width,
+      dest.height / sourceRect.height
     );
-    const lift = Math.min(28, Math.abs(dx) * 0.035);
-    const ease = gsap.parseEase("expo.out");
-    const proxy = { t: 0 };
+    const endX = dest.left + (dest.width - sourceRect.width * scale) / 2;
+    const endY = dest.top + (dest.height - sourceRect.height * scale) / 2;
+    const from = `translate3d(${sourceRect.left}px, ${sourceRect.top}px, 0)`;
+    const to = `translate3d(${endX}px, ${endY}px, 0) scale(${scale})`;
 
-    const ctx = gsap.context(() => {
-      gsap.set(card, {
-        x: dx,
-        y: dy,
-        scale,
-        transformOrigin: "50% 50%",
-        force3D: true,
-      });
-      gsap.set(bodyRef.current, { opacity: 0, y: 14 });
+    flyer.style.visibility = "visible";
+    flyer.style.opacity = "1";
+    flyer.style.width = `${sourceRect.width}px`;
+    flyer.style.height = `${sourceRect.height}px`;
+    flyer.style.transformOrigin = "0 0";
+    flyer.style.willChange = "transform";
+    flyer.style.transform = from;
 
-      const tl = gsap.timeline();
-      tl.to(proxy, {
-        t: 1,
-        duration: 1.12,
-        ease: "none",
-        onUpdate: () => {
-          const t = proxy.t;
-          const e = ease(t);
-          gsap.set(card, {
-            x: dx * (1 - e),
-            y: dy * (1 - e) - Math.sin(Math.PI * t) * lift,
-            scale: scale + (1 - scale) * e,
-            force3D: true,
-          });
-        },
-        onComplete: () => {
-          gsap.set(card, { x: 0, y: 0, scale: 1, clearProps: "transform" });
-        },
-      });
-      tl.to(
-        bodyRef.current,
-        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-        0.48
-      );
-    }, card);
+    let cancelled = false;
+    const animation = flyer.animate([{ transform: from }, { transform: to }], {
+      duration: 480,
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      fill: "forwards",
+    });
 
-    return () => ctx.revert();
-  }, [figure.id, reducedMotion, sourceRect]);
+    const fallback = window.setTimeout(() => {
+      if (!cancelled) finish();
+    }, 640);
+    animation.onfinish = () => {
+      if (cancelled) return;
+      window.clearTimeout(fallback);
+      finish();
+    };
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallback);
+      animation.cancel();
+    };
+  }, [canFly, figure.id, sourceRect]);
 
   return (
-    <div className="pointer-events-none fixed inset-y-0 left-4 right-4 z-[82] flex items-center md:left-6 md:right-auto">
-    <aside
-      ref={cardRef}
-      className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-2xl border border-ink/12 bg-rice shadow-[0_16px_40px_rgb(33_51_56_/_14%)] md:h-[min(32rem,calc(100svh-6rem))] md:w-[280px]"
-      aria-label={t("match.figureAria", { name: copy.displayName })}
-    >
-      <div className="flex h-24 w-full min-h-0 items-center justify-center bg-parchment/70 p-4 md:h-auto md:flex-1">
-        {figure.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={figure.image}
-            alt={copy.imageAlt ?? copy.displayName}
-            draggable={false}
-            className="h-full w-full select-none object-contain"
-          />
-        ) : (
-          <div
-            className="h-full max-h-52 w-[42%] min-w-10 bg-[#B7AFA3]"
-            aria-hidden="true"
-          />
-        )}
-      </div>
+    <>
+      {canFly ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          ref={flyerRef}
+          src={figure.image}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          decoding="sync"
+          className="pointer-events-none fixed left-0 top-0 z-[90] object-contain"
+        />
+      ) : null}
 
-      <div ref={bodyRef} className="min-w-0 shrink-0 px-4 py-3 md:p-5">
-        <p className="type-meta text-cinnabar">
-          {t("detail.selectedFigure")}
-        </p>
-        <h2 className="type-card mt-1.5">
-          {copy.displayName}
-        </h2>
-        {copy.category && (
-          <p className="type-meta mt-1.5 text-gold">
-            {copy.category}
-          </p>
-        )}
-        <p className="type-body mt-2 line-clamp-3 text-ink/80">
-          {copy.shortDescription}
-        </p>
+      <div className="pointer-events-none fixed inset-y-0 left-4 right-4 z-[82] flex items-center md:left-6 md:right-auto">
+        <aside
+          ref={cardRef}
+          className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-2xl border border-ink/12 bg-rice shadow-[0_16px_40px_rgb(33_51_56_/_14%)] md:h-[min(32rem,calc(100svh-6rem))] md:w-[280px]"
+          aria-label={t("match.figureAria", { name: copy.displayName })}
+          style={{ opacity: canFly ? 0 : 1 }}
+        >
+          <div
+            ref={slotRef}
+            className="flex h-24 w-full min-h-0 items-center justify-center bg-parchment/70 p-4 md:h-auto md:flex-1"
+          >
+            {figure.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={figure.image}
+                alt={copy.imageAlt ?? copy.displayName}
+                draggable={false}
+                decoding="async"
+                className="h-full w-full select-none object-contain"
+              />
+            ) : (
+              <div
+                className="h-full max-h-52 w-[42%] min-w-10 bg-[#B7AFA3]"
+                aria-hidden="true"
+              />
+            )}
+          </div>
+
+          <div className="min-w-0 shrink-0 px-4 py-3 md:p-5">
+            <p className="type-meta text-cinnabar">{t("detail.selectedFigure")}</p>
+            <h2 className="type-card mt-1.5">{copy.displayName}</h2>
+            {copy.category && (
+              <p className="type-meta mt-1.5 text-gold">{copy.category}</p>
+            )}
+            <p className="type-body mt-2 line-clamp-3 text-ink/80">
+              {copy.shortDescription}
+            </p>
+          </div>
+        </aside>
       </div>
-    </aside>
-    </div>
+    </>
   );
 }

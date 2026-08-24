@@ -521,7 +521,7 @@ export function getExploreCardsForTemple(templeId: string): MuralCardData[] {
       title: mural.title,
       hall: mural.location,
       period: mural.period,
-      image: mural.image,
+      image: mural.thumbnail || mural.image,
       imageAlt: mural.alt,
       x: 0,
       y: 0,

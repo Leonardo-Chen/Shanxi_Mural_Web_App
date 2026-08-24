@@ -292,6 +292,7 @@ function ExploreMuralCardContent({
             alt={imageAlt}
             draggable={false}
             className="pointer-events-none h-full w-full select-none object-cover"
+            decoding="async"
             style={{ WebkitUserDrag: "none" } as React.CSSProperties}
           />
         ) : (
@@ -325,6 +326,7 @@ function StoryCardContent({
           alt={imageAlt}
           draggable={false}
           fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
           className="pointer-events-none h-full w-full select-none object-cover"
           style={{ WebkitUserDrag: "none" } as React.CSSProperties}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 import MuralCard from "./MuralCard";
 import type { MuralCardData } from "@/data/muralCards";
 import { canvasLayout } from "@/data/canvasLayout";
@@ -25,6 +25,7 @@ interface DraggableCanvasProps {
   onOutlineComplete?: (cardId: string) => void;
   hasDraggedRef?: React.RefObject<boolean | null>;
   zoom?: number;
+  layerRef?: RefObject<HTMLDivElement | null>;
 }
 
 export default function DraggableCanvas({
@@ -45,6 +46,7 @@ export default function DraggableCanvas({
   onOutlineComplete,
   hasDraggedRef,
   zoom = 1,
+  layerRef,
 }: DraggableCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const anchors = useMemo(() => scaleAnchors(isMobile), [isMobile]);
@@ -93,15 +95,18 @@ export default function DraggableCanvas({
       className={`fixed inset-0 z-10 touch-none overflow-hidden ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
-      style={{ touchAction: "none" }}
+      style={{ touchAction: "none", overscrollBehavior: "none" }}
     >
       <div
-        className="absolute origin-top-left will-change-transform grid"
+        ref={layerRef}
+        className="absolute origin-top-left grid"
         id="grid"
         style={{
           width: canvasWidth,
           height: canvasHeight,
           transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${zoom})`,
+          willChange: isDragging ? "transform" : "auto",
+          contain: "layout paint",
         }}
       >
         {/* Connection paths */}

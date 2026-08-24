@@ -25,7 +25,7 @@ export default function MuralInspectWindow({
 }: MuralInspectWindowProps) {
   const { locale, t } = useLocale();
   const copy = locMural(locale, mural);
-  const src = copy.image || copy.thumbnail;
+  const src = copy.thumbnail || copy.image;
   const annotated = muralById[mural.id];
   const relatedElements = useMemo(
     () => elements.filter((element) => element.sourceMuralId === mural.id),

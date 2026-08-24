@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDrag } from "@use-gesture/react";
 import { gsap } from "gsap";
 import { useCanvasBounds } from "./useCanvasBounds";
@@ -88,8 +88,24 @@ export function useDraggableCanvas({
   const wrapPausedRef = useRef(false);
   const wrapPeriodRef = useRef(wrapPeriod);
   const viewportSizeRef = useRef(viewportSize);
+  const layerRef = useRef<HTMLDivElement | null>(null);
   wrapPeriodRef.current = wrapPeriod;
   viewportSizeRef.current = viewportSize;
+
+  const writeLayer = useCallback(() => {
+    const el = layerRef.current;
+    if (!el) return;
+    const { x, y } = positionRef.current;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${zoomRef.current})`;
+  }, []);
+
+  const skipReactSync = useCallback(() => {
+    return (
+      gestureActiveRef.current ||
+      inertiaFrameRef.current !== null ||
+      panTweenRef.current !== null
+    );
+  }, []);
 
   const { applyEdgeResistance, clampPosition, clampForScale } =
     useCanvasBounds({
@@ -130,6 +146,7 @@ export function useDraggableCanvas({
       positionRef.current = initial;
       dragStartRef.current = initial;
       setPosition(initial);
+      writeLayer();
       if (markInitialized) setInitialized(true);
     },
     [
@@ -141,6 +158,7 @@ export function useDraggableCanvas({
       viewportSize.height,
       viewportSize.width,
       wrapPeriod,
+      writeLayer,
     ]
   );
 
@@ -162,6 +180,10 @@ export function useDraggableCanvas({
     viewportSize.width,
   ]);
 
+  useLayoutEffect(() => {
+    writeLayer();
+  });
+
   const applyPosition = useCallback(
     (x: number, y: number, clamp = true) => {
       const period = wrapPeriodRef.current;
@@ -179,10 +201,12 @@ export function useDraggableCanvas({
       }
       positionRef.current.x = next.x;
       positionRef.current.y = next.y;
+      writeLayer();
+      if (skipReactSync()) return;
       setPosition({ x: next.x, y: next.y });
       onPositionChange?.(positionRef.current);
     },
-    [applyEdgeResistance, onPositionChange]
+    [applyEdgeResistance, onPositionChange, skipReactSync, writeLayer]
   );
 
   const updatePosition = useCallback(
@@ -208,6 +232,8 @@ export function useDraggableCanvas({
       if (speed < MIN_VELOCITY) {
         inertiaFrameRef.current = null;
         velocityRef.current = { x: 0, y: 0 };
+        setPosition({ ...positionRef.current });
+        onPositionChange?.(positionRef.current);
         return;
       }
       applyPosition(
@@ -265,6 +291,8 @@ export function useDraggableCanvas({
           runInertia();
         } else {
           velocityRef.current = { x: 0, y: 0 };
+          setPosition({ ...positionRef.current });
+          onPositionChange?.(positionRef.current);
         }
       }
     },
@@ -295,6 +323,8 @@ export function useDraggableCanvas({
 
       const finish = () => {
         wrapPausedRef.current = false;
+        const el = layerRef.current;
+        if (el) el.style.willChange = "auto";
         applyPosition(target.x, target.y, !infinite && clamp);
         onComplete?.();
       };
@@ -304,11 +334,14 @@ export function useDraggableCanvas({
         return;
       }
 
+      const layer = layerRef.current;
+      if (layer) layer.style.willChange = "transform";
+
       panTweenRef.current = gsap.to(positionRef.current, {
         x: target.x,
         y: target.y,
-        duration: 0.72,
-        ease: "power2.inOut",
+        duration: 0.55,
+        ease: "power2.out",
         onUpdate: () => {
           applyPosition(positionRef.current.x, positionRef.current.y, false);
         },
@@ -344,9 +377,10 @@ export function useDraggableCanvas({
       };
       positionRef.current = next;
       setPosition(next);
+      writeLayer();
       onPositionChange?.(positionRef.current);
     },
-    [initialCenter.x, initialCenter.y, maxZoom, minZoom, onPositionChange, stopInertia, viewportSize.height, viewportSize.width]
+    [initialCenter.x, initialCenter.y, maxZoom, minZoom, onPositionChange, stopInertia, viewportSize.height, viewportSize.width, writeLayer]
   );
 
   const cancelPan = useCallback(() => {
@@ -382,6 +416,7 @@ export function useDraggableCanvas({
 
       zoomRef.current = clampedZoom;
       positionRef.current = nextPosition;
+      writeLayer();
 
       if (zoomRafRef.current !== null) return;
       zoomRafRef.current = requestAnimationFrame(() => {
@@ -391,7 +426,7 @@ export function useDraggableCanvas({
         onPositionChange?.(positionRef.current);
       });
     },
-    [clampForScale, maxZoom, minZoom, onPositionChange, stopInertia]
+    [clampForScale, maxZoom, minZoom, onPositionChange, stopInertia, writeLayer]
   );
 
   const applyWheelZoom = useCallback(
@@ -441,6 +476,7 @@ export function useDraggableCanvas({
     initialized,
     viewportSize,
     bind,
+    layerRef,
     navigateTo,
     clampPosition,
     setPosition: updatePosition,
