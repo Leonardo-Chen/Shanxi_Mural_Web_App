@@ -16,7 +16,7 @@ export default function BrandHeader({ mode, onLogoClick }: BrandHeaderProps) {
     <button
       type="button"
       onClick={onLogoClick}
-      className="block shrink-0"
+      className="block shrink-0 transition-transform duration-300 ease-out hover:scale-[1.04]"
       aria-label={t("brand.backToCover")}
     >
       {mode === "cover" ? (

@@ -292,7 +292,7 @@ function MuralExploreOverlay({
         </button>
 
         <div
-          className={`shrink-0 bg-[#B8B0A4] ${
+          className={`shrink-0 overflow-hidden bg-[#B8B0A4] ${
             isMobile ? "h-52 w-full" : "h-full w-[54%]"
           }`}
         >

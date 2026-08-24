@@ -11,6 +11,12 @@ export interface CanvasPosition {
   y: number;
 }
 
+export interface CanvasWrapPeriod {
+  x: number;
+  y: number;
+  center: { x: number; y: number };
+}
+
 export interface UseDraggableCanvasOptions {
   canvasWidth: number;
   canvasHeight: number;
@@ -19,7 +25,34 @@ export interface UseDraggableCanvasOptions {
   allowDragFromInteractive?: boolean;
   minZoom?: number;
   maxZoom?: number;
+  /** 按内容周期回绕平移，配合重复元素做出假无限画布。 */
+  wrapPeriod?: CanvasWrapPeriod | null;
   onPositionChange?: (pos: CanvasPosition) => void;
+}
+
+function wrapUnit(value: number, origin: number, size: number) {
+  if (size <= 0) return value;
+  let t = value - origin + size / 2;
+  t = ((t % size) + size) % size;
+  return origin + t - size / 2;
+}
+
+function wrapCanvasPan(
+  x: number,
+  y: number,
+  zoom: number,
+  viewport: { width: number; height: number },
+  period: CanvasWrapPeriod
+): CanvasPosition {
+  const vw = viewport.width || 1;
+  const vh = viewport.height || 1;
+  const z = zoom || 1;
+  const worldX = wrapUnit((vw / 2 - x) / z, period.center.x, period.x);
+  const worldY = wrapUnit((vh / 2 - y) / z, period.center.y, period.y);
+  return {
+    x: vw / 2 - worldX * z,
+    y: vh / 2 - worldY * z,
+  };
 }
 
 const FRICTION = 0.95;
@@ -33,6 +66,7 @@ export function useDraggableCanvas({
   allowDragFromInteractive = false,
   minZoom = 0.25,
   maxZoom = 4,
+  wrapPeriod = null,
   onPositionChange,
 }: UseDraggableCanvasOptions) {
   const reducedMotion = useReducedMotion();
@@ -51,6 +85,11 @@ export function useDraggableCanvas({
   const panTweenRef = useRef<gsap.core.Tween | null>(null);
   const hasDraggedRef = useRef(false);
   const gestureActiveRef = useRef(false);
+  const wrapPausedRef = useRef(false);
+  const wrapPeriodRef = useRef(wrapPeriod);
+  const viewportSizeRef = useRef(viewportSize);
+  wrapPeriodRef.current = wrapPeriod;
+  viewportSizeRef.current = viewportSize;
 
   const { applyEdgeResistance, clampPosition, clampForScale } =
     useCanvasBounds({
@@ -73,35 +112,71 @@ export function useDraggableCanvas({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  useEffect(() => {
-    if (viewportSize.width > 0 && !initialized) {
+  const lastHomeKeyRef = useRef<string>("");
+
+  const applyHomeView = useCallback(
+    (markInitialized: boolean) => {
+      if (viewportSize.width <= 0) return;
       const initialZoom = Math.min(maxZoom, Math.max(minZoom, 1));
       zoomRef.current = initialZoom;
       setZoom(initialZoom);
-      const initial = clampForScale(
-        viewportSize.width / 2 - initialCenter.x * initialZoom,
-        viewportSize.height / 2 - initialCenter.y * initialZoom,
-        initialZoom,
-        false
-      );
+      const raw = {
+        x: viewportSize.width / 2 - initialCenter.x * initialZoom,
+        y: viewportSize.height / 2 - initialCenter.y * initialZoom,
+      };
+      const initial = wrapPeriod
+        ? wrapCanvasPan(raw.x, raw.y, initialZoom, viewportSize, wrapPeriod)
+        : clampForScale(raw.x, raw.y, initialZoom, false);
       positionRef.current = initial;
       dragStartRef.current = initial;
       setPosition(initial);
-      setInitialized(true);
+      if (markInitialized) setInitialized(true);
+    },
+    [
+      clampForScale,
+      initialCenter.x,
+      initialCenter.y,
+      maxZoom,
+      minZoom,
+      viewportSize.height,
+      viewportSize.width,
+      wrapPeriod,
+    ]
+  );
+
+  useEffect(() => {
+    if (viewportSize.width <= 0) return;
+    if (initialized && (hasDraggedRef.current || gestureActiveRef.current)) {
+      return;
     }
+    const key = `${initialCenter.x},${initialCenter.y},${viewportSize.width},${viewportSize.height}`;
+    if (initialized && lastHomeKeyRef.current === key) return;
+    lastHomeKeyRef.current = key;
+    applyHomeView(!initialized);
   }, [
-    clampForScale,
-    initialCenter,
+    applyHomeView,
+    initialCenter.x,
+    initialCenter.y,
     initialized,
-    maxZoom,
-    minZoom,
     viewportSize.height,
     viewportSize.width,
   ]);
 
   const applyPosition = useCallback(
     (x: number, y: number, clamp = true) => {
-      const next = clamp ? applyEdgeResistance(x, y) : { x, y };
+      const period = wrapPeriodRef.current;
+      let next = { x, y };
+      if (period && !wrapPausedRef.current) {
+        next = wrapCanvasPan(
+          x,
+          y,
+          zoomRef.current,
+          viewportSizeRef.current,
+          period
+        );
+      } else if (clamp) {
+        next = applyEdgeResistance(x, y);
+      }
       positionRef.current.x = next.x;
       positionRef.current.y = next.y;
       setPosition({ x: next.x, y: next.y });
@@ -212,13 +287,20 @@ export function useDraggableCanvas({
       const scale = zoomRef.current;
       const rawX = (viewportSize.width || 1) / 2 - pointX * scale;
       const rawY = (viewportSize.height || 1) / 2 - pointY * scale;
-      const target = clamp
+      const infinite = Boolean(wrapPeriodRef.current);
+      wrapPausedRef.current = infinite;
+      const target = !infinite && clamp
         ? clampForScale(rawX, rawY, scale, false)
         : { x: rawX, y: rawY };
 
-      if (!animate || reducedMotion) {
-        applyPosition(target.x, target.y, clamp);
+      const finish = () => {
+        wrapPausedRef.current = false;
+        applyPosition(target.x, target.y, !infinite && clamp);
         onComplete?.();
+      };
+
+      if (!animate || reducedMotion) {
+        finish();
         return;
       }
 
@@ -232,8 +314,7 @@ export function useDraggableCanvas({
         },
         onComplete: () => {
           panTweenRef.current = null;
-          applyPosition(target.x, target.y, clamp);
-          onComplete?.();
+          finish();
         },
       });
     },
@@ -254,7 +335,7 @@ export function useDraggableCanvas({
       panTweenRef.current = null;
       const width = viewportSize.width || (typeof window !== "undefined" ? window.innerWidth : 1);
       const height = viewportSize.height || (typeof window !== "undefined" ? window.innerHeight : 1);
-      const z = Math.min(maxZoom, Math.max(0.25, nextZoom));
+      const z = Math.min(maxZoom, Math.max(minZoom, nextZoom));
       zoomRef.current = z;
       setZoom(z);
       const next = {
@@ -265,12 +346,13 @@ export function useDraggableCanvas({
       setPosition(next);
       onPositionChange?.(positionRef.current);
     },
-    [initialCenter.x, initialCenter.y, maxZoom, onPositionChange, stopInertia, viewportSize.height, viewportSize.width]
+    [initialCenter.x, initialCenter.y, maxZoom, minZoom, onPositionChange, stopInertia, viewportSize.height, viewportSize.width]
   );
 
   const cancelPan = useCallback(() => {
     panTweenRef.current?.kill();
     panTweenRef.current = null;
+    wrapPausedRef.current = false;
   }, []);
 
   const setZoomAt = useCallback(
@@ -279,15 +361,24 @@ export function useDraggableCanvas({
       const currentZoom = zoomRef.current;
       if (Math.abs(clampedZoom - currentZoom) < 0.0001) return;
 
+      hasDraggedRef.current = true;
       stopInertia();
       const worldX = (clientX - positionRef.current.x) / currentZoom;
       const worldY = (clientY - positionRef.current.y) / currentZoom;
-      const nextPosition = clampForScale(
-        clientX - worldX * clampedZoom,
-        clientY - worldY * clampedZoom,
-        clampedZoom,
-        false
-      );
+      const rawPosition = {
+        x: clientX - worldX * clampedZoom,
+        y: clientY - worldY * clampedZoom,
+      };
+      const period = wrapPeriodRef.current;
+      const nextPosition = period
+        ? wrapCanvasPan(
+            rawPosition.x,
+            rawPosition.y,
+            clampedZoom,
+            viewportSizeRef.current,
+            period
+          )
+        : clampForScale(rawPosition.x, rawPosition.y, clampedZoom, false);
 
       zoomRef.current = clampedZoom;
       positionRef.current = nextPosition;

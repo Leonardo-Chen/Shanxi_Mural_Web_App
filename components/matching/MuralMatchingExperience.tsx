@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import {
+  getMatchingInsets,
   getMatchingLayout,
+  getMatchingViewCenter,
   muralMatchingCanvas,
   pickMatchingMuralIds,
 } from "@/data/muralMatchingLayout";
@@ -18,11 +20,14 @@ import { useDraggableCanvas } from "@/hooks/useDraggableCanvas";
 import { useGameProgress } from "@/hooks/useGameProgress";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { computeContentZoomRange } from "@/lib/canvasZoom";
+import CanvasViewControls, { CANVAS_ZOOM_STEP } from "@/components/mural/CanvasViewControls";
+import CanvasInstruction from "@/components/mural/CanvasInstruction";
 import MatchingFeedback from "./MatchingFeedback";
 import MuralDetailOverlay from "./MuralDetailOverlay";
 import MuralInspectWindow from "./MuralInspectWindow";
 import MuralOption from "./MuralOption";
 import SelectedFigureCard from "./SelectedFigureCard";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export type ExperienceStage =
   | "figure-exploration"
@@ -40,6 +45,7 @@ interface MuralMatchingExperienceProps {
   isMobile: boolean;
   onOpenTemple: (templeId: string) => void;
   onReturnHome: () => void;
+  hideCards?: boolean;
 }
 
 export default function MuralMatchingExperience({
@@ -49,8 +55,10 @@ export default function MuralMatchingExperience({
   isMobile,
   onOpenTemple,
   onReturnHome,
+  hideCards = false,
 }: MuralMatchingExperienceProps) {
   const reducedMotion = useReducedMotion();
+  const { t } = useLocale();
   const figure = useMemo(
     () =>
       coverElement
@@ -66,20 +74,26 @@ export default function MuralMatchingExperience({
       ),
     [figure.correctMuralId, figure.sourceMuralId]
   );
-  const layout = useMemo(
-    () => getMatchingLayout(isMobile, muralIds),
-    [isMobile, muralIds]
-  );
-  const canvas = isMobile
-    ? muralMatchingCanvas.mobile
-    : muralMatchingCanvas.desktop;
-
   const [stage, setStage] = useState<ExperienceStage>("mural-matching");
   const [selectedMuralId, setSelectedMuralId] = useState<string | null>(null);
   const [focusingId, setFocusingId] = useState<string | null>(null);
   const [earnedStar, setEarnedStar] = useState(false);
   const [outlineNonce, setOutlineNonce] = useState(0);
   const [inspectOpen, setInspectOpen] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [hintVisible, setHintVisible] = useState(true);
+  const [viewport, setViewport] = useState({ width: 1280, height: 800 });
+  const layout = useMemo(
+    () => getMatchingLayout(isMobile, muralIds, viewport),
+    [isMobile, muralIds, viewport]
+  );
+  const canvas = isMobile
+    ? muralMatchingCanvas.mobile
+    : muralMatchingCanvas.desktop;
+  const viewCenter = useMemo(
+    () => getMatchingViewCenter(viewport),
+    [viewport]
+  );
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const didPanRef = useRef(false);
   const focusingIdRef = useRef<string | null>(null);
@@ -109,9 +123,31 @@ export default function MuralMatchingExperience({
     });
   }, [collectSticker, coverElement, figure]);
 
+  useEffect(() => {
+    setWrongAttempts(0);
+  }, [figure.id]);
+
+  useEffect(() => {
+    const update = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    setHintVisible(true);
+    const timer = window.setTimeout(() => setHintVisible(false), 3200);
+    return () => window.clearTimeout(timer);
+  }, [figure.id]);
+
+  useEffect(() => {
+    if (inspectOpen) setHintVisible(false);
+  }, [inspectOpen]);
+
   const zoomRange = useMemo(() => {
-    const vw = isMobile ? 390 : 1440;
-    const vh = isMobile ? 844 : 900;
+    const insets = getMatchingInsets(isMobile);
     return computeContentZoomRange(
       layout.map((item) => ({
         x: item.x,
@@ -119,9 +155,13 @@ export default function MuralMatchingExperience({
         width: item.width,
         height: item.width / item.aspectRatio,
       })),
-      { width: vw, height: vh }
+      {
+        width: Math.max(1, viewport.width - insets.left - insets.right),
+        height: Math.max(1, viewport.height - insets.top - insets.bottom),
+      },
+      24
     );
-  }, [isMobile, layout]);
+  }, [isMobile, layout, viewport.height, viewport.width]);
 
   const {
     position,
@@ -133,10 +173,13 @@ export default function MuralMatchingExperience({
     navigateTo,
     cancelPan,
     resetView,
+    setZoomLevel,
+    minZoom,
+    maxZoom,
   } = useDraggableCanvas({
     canvasWidth: canvas.width,
     canvasHeight: canvas.height,
-    initialCenter: canvas.initialCenter,
+    initialCenter: viewCenter,
     allowDragFromInteractive: true,
     minZoom: zoomRange.minZoom,
     maxZoom: zoomRange.maxZoom,
@@ -211,10 +254,12 @@ export default function MuralMatchingExperience({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === "Escape" &&
-        (stage === "mural-selected" || stage === "mural-matching")
-      ) {
+      if (event.key !== "Escape") return;
+      if (hintVisible) {
+        setHintVisible(false);
+        return;
+      }
+      if (stage === "mural-selected" || stage === "mural-matching") {
         setInspectOpen(false);
         selectedMuralIdRef.current = null;
         setSelectedMuralId(null);
@@ -226,7 +271,7 @@ export default function MuralMatchingExperience({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [cancelPan, stage]);
+  }, [cancelPan, hintVisible, stage]);
 
   const selectMural = useCallback(
     (muralId: string, force = false) => {
@@ -280,6 +325,7 @@ export default function MuralMatchingExperience({
       ? { sourceMuralId }
       : null;
     if (!selected || !elementForJudge || !isCorrectMatch(elementForJudge, selected)) {
+      setWrongAttempts((count) => count + 1);
       setStage("answer-incorrect");
       return;
     }
@@ -301,14 +347,12 @@ export default function MuralMatchingExperience({
     setInspectOpen(false);
     setSelectedMuralId(null);
     setStage("mural-matching");
-    if (correctMuralId) {
+    if (wrongAttempts >= 2 && correctMuralId) {
       window.setTimeout(() => {
         selectMural(correctMuralId, true);
       }, 50);
-      return;
     }
-    resetView();
-  }, [correctMuralId, resetView, selectMural]);
+  }, [correctMuralId, selectMural, wrongAttempts]);
 
   const clearSelectionFromCanvas = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -345,12 +389,44 @@ export default function MuralMatchingExperience({
       className="fixed inset-0 z-10 overflow-hidden bg-parchment"
       data-matching-stage={stage}
     >
-      <SelectedFigureCard
-        figure={figure}
-        sourceRect={sourceRect}
-        reducedMotion={reducedMotion}
-        onClose={onReturnHome}
-      />
+      <div
+        className={hideCards ? "invisible pointer-events-none" : undefined}
+        aria-hidden={hideCards || undefined}
+      >
+        <SelectedFigureCard
+          figure={figure}
+          sourceRect={sourceRect}
+          reducedMotion={reducedMotion}
+        />
+      </div>
+
+      {!hideCards ? (
+        <CanvasInstruction
+          messageKey="match.hint"
+          floating
+          visible={hintVisible}
+          onClose={() => setHintVisible(false)}
+        />
+      ) : null}
+
+      {!hideCards ? (
+        <CanvasViewControls
+          onBack={
+            inspectOpen || stage === "mural-detail" ? undefined : onReturnHome
+          }
+          backLabel={t("match.reselect")}
+          backPlacement="top-left"
+          onZoomIn={() => setZoomLevel(zoom * CANVAS_ZOOM_STEP)}
+          onZoomOut={() => setZoomLevel(zoom / CANVAS_ZOOM_STEP)}
+          onReset={() => resetView(1)}
+          canZoomIn={zoom < maxZoom - 0.001}
+          canZoomOut={zoom > minZoom + 0.001}
+          showZoom={
+            stage === "mural-matching" ||
+            (stage === "mural-selected" && !inspectOpen)
+          }
+        />
+      ) : null}
 
       <div
         {...bind()}
@@ -407,27 +483,31 @@ export default function MuralMatchingExperience({
         </div>
       </div>
 
-      {inspectOpen &&
+      {!hideCards &&
+        inspectOpen &&
         selectedMural &&
         stage === "mural-selected" && (
           <MuralInspectWindow
             mural={selectedMural}
             isMobile={isMobile}
             onConfirm={submitAnswer}
+            onClose={() => setInspectOpen(false)}
+            onOpenTemple={onOpenTemple}
           />
         )}
 
-      {stage === "answer-incorrect" && (
+      {!hideCards && stage === "answer-incorrect" && (
         <MatchingFeedback
           result="incorrect"
           earnedStar={false}
+          revealAnswer={wrongAttempts >= 2}
           onDismiss={dismissIncorrect}
           onLearnMore={() => undefined}
           onChooseAnother={onReturnHome}
         />
       )}
 
-      {stage === "answer-correct" && (
+      {!hideCards && stage === "answer-correct" && (
         <MatchingFeedback
           result="correct"
           earnedStar={earnedStar}
@@ -438,7 +518,7 @@ export default function MuralMatchingExperience({
         />
       )}
 
-      {stage === "mural-detail" && selectedMural && (
+      {!hideCards && stage === "mural-detail" && selectedMural && (
         <MuralDetailOverlay
           mural={selectedMural}
           figure={figure}

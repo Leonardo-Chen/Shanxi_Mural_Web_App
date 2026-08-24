@@ -8,7 +8,8 @@ import DraggableCanvas from "./DraggableCanvas";
 import DetailOverlay, { type DetailContent } from "./DetailOverlay";
 import FixedNavigation from "./FixedNavigation";
 import NavPanel, { type NavSection } from "./NavPanel";
-import DragIndicator from "./DragIndicator";
+import CanvasViewControls, { CANVAS_ZOOM_STEP } from "@/components/mural/CanvasViewControls";
+import CanvasInstruction from "@/components/mural/CanvasInstruction";
 import { MobilePositionIndicator } from "./MiniMap";
 import MuralExperience from "./mural/MuralExperience";
 import MuralMatchingExperience from "./matching/MuralMatchingExperience";
@@ -24,7 +25,6 @@ import {
 } from "@/lib/canvasScale";
 import { getTempleExploreCards } from "@/lib/templeExplore";
 import { muralById } from "@/data/muralData";
-import { locTemple } from "@/lib/i18n/localize";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useDraggableCanvas } from "@/hooks/useDraggableCanvas";
 import { useCardTransition } from "@/hooks/useCardTransition";
@@ -63,7 +63,7 @@ function filterCardsForTemple(
 
 export default function MuralHomepage() {
   const reducedMotion = useReducedMotion();
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const [phase, setPhase] = useState<Phase>("cover");
   const [introVisible, setIntroVisible] = useState(true);
   const [selectedTempleId, setSelectedTempleId] = useState<string | null>(null);
@@ -84,6 +84,7 @@ export default function MuralHomepage() {
   const parallaxRafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [exploreSession, setExploreSession] = useState(0);
+  const [exploreHintVisible, setExploreHintVisible] = useState(true);
   const [coverGeneration, setCoverGeneration] = useState(0);
   const { progress, redeemPostcard, resetFigureAwards } = useGameProgress();
   const [postcardAssets, setPostcardAssets] = useState<PostcardAsset[]>(
@@ -152,6 +153,11 @@ export default function MuralHomepage() {
     navigateTo,
     cancelPan,
     hasDraggedRef,
+    zoom,
+    setZoomLevel,
+    resetView,
+    minZoom,
+    maxZoom,
   } = useDraggableCanvas({
     canvasWidth: canvasSize.width,
     canvasHeight: canvasSize.height,
@@ -196,6 +202,7 @@ export default function MuralHomepage() {
       setDetailContent(null);
       setSelectedCardId(null);
       setIntroVisible(true);
+      setExploreHintVisible(true);
       setExploreSession((n) => n + 1);
       setPhase("explore");
     },
@@ -509,41 +516,34 @@ export default function MuralHomepage() {
     );
   }
 
-  const selectedTemple = selectedTempleId
-    ? templeMap[selectedTempleId]
-    : undefined;
-  const selectedTempleName = selectedTemple
-    ? locTemple(locale, selectedTemple).name
-    : null;
-
   return (
     <div ref={containerRef} className="fixed inset-0 overflow-hidden">
       <TextureBackground />
 
-      <FixedNavigation
-        compact={phase !== "cover"}
-        variant={
-          phase === "cover"
-            ? "cover"
-            : phase === "home"
-              ? "home"
-              : phase === "matching"
-                ? "matching"
-                : "site"
-        }
-        instructionKey={
-          phase === "home"
-            ? "home.instruction"
-            : phase === "matching"
-              ? "match.hint"
-              : phase === "map"
-                ? "map.hint"
-                : undefined
-        }
-        activeSection={navSection}
-        onNavClick={handleNavClick}
-        onLogoClick={goToCover}
-      />
+      <div
+        className={pendingPostcard ? "invisible pointer-events-none" : undefined}
+        aria-hidden={pendingPostcard ? true : undefined}
+      >
+        <FixedNavigation
+          compact={phase !== "cover"}
+          variant={
+            phase === "cover"
+              ? "cover"
+              : phase === "home"
+                ? "home"
+                : phase === "matching"
+                  ? "matching"
+                  : phase === "explore"
+                    ? "explore"
+                    : phase === "map"
+                      ? "map"
+                      : "site"
+          }
+          activeSection={navSection}
+          onNavClick={handleNavClick}
+          onLogoClick={goToCover}
+        />
+      </div>
 
       <MuralExperience
         hidden={phase === "matching" || phase === "map" || phase === "explore"}
@@ -551,6 +551,7 @@ export default function MuralHomepage() {
         coverGeneration={coverGeneration}
         onCoverComplete={handleCoverComplete}
         onContinueFigure={handleContinueFigure}
+        onBackToCover={goToCover}
         detailOpen={!!detailContent}
       />
 
@@ -563,6 +564,7 @@ export default function MuralHomepage() {
           isMobile={isMobile}
           onOpenTemple={openTempleOnMap}
           onReturnHome={goHome}
+          hideCards={!!pendingPostcard}
         />
       )}
 
@@ -591,24 +593,34 @@ export default function MuralHomepage() {
             isMobile={isMobile}
             activeTempleIds={activeTempleIds}
             hasDraggedRef={hasDraggedRef}
+            zoom={zoom}
           />
 
           {templeExplore && templeExplore.cards.length === 0 && (
-            <p className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center font-serif text-sm text-ink/55">
+            <p className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center type-body text-ink/55">
               {t("map.closed")}
             </p>
           )}
 
-          <button
-            type="button"
-            onClick={handleBackToMap}
-            className="type-ui pointer-events-auto fixed left-5 top-24 z-40 max-w-[min(22rem,calc(100vw-2.5rem))] border border-[rgb(33_51_56_/_18%)] bg-rice px-4 py-3 text-left text-ink/70 md:left-6 md:top-28"
-          >
-            {t("explore.backToMap")}
-            {selectedTempleName ? ` · ${selectedTempleName}` : ""}
-          </button>
+          {!detailContent ? (
+            <CanvasInstruction
+              messageKey="home.canvasHint"
+              floating
+              visible={exploreHintVisible}
+              onClose={() => setExploreHintVisible(false)}
+            />
+          ) : null}
 
-          <DragIndicator visible={!detailContent && !navSection} />
+          <CanvasViewControls
+            onBack={handleBackToMap}
+            backLabel={t("explore.backToMap")}
+            backPlacement="top-left"
+            onZoomIn={() => setZoomLevel(zoom * CANVAS_ZOOM_STEP)}
+            onZoomOut={() => setZoomLevel(zoom / CANVAS_ZOOM_STEP)}
+            onReset={() => resetView(1)}
+            canZoomIn={zoom < maxZoom - 0.001}
+            canZoomOut={zoom > minZoom + 0.001}
+          />
 
           {isMobile && (
             <MobilePositionIndicator
@@ -622,18 +634,22 @@ export default function MuralHomepage() {
         </>
       )}
 
-      <NavPanel
-        section={navSection}
-        onClose={handleCloseNav}
-        onSelectTemple={handleSelectTemple}
-        isMobile={isMobile}
-      />
+      {!pendingPostcard ? (
+        <NavPanel
+          section={navSection}
+          onClose={handleCloseNav}
+          onSelectTemple={handleSelectTemple}
+          isMobile={isMobile}
+        />
+      ) : null}
 
-      <DetailOverlay
-        content={detailContent}
-        onClose={handleCloseDetail}
-        isMobile={isMobile}
-      />
+      {!pendingPostcard ? (
+        <DetailOverlay
+          content={detailContent}
+          onClose={handleCloseDetail}
+          isMobile={isMobile}
+        />
+      ) : null}
 
       {pendingPostcard && (
         <PostcardReward

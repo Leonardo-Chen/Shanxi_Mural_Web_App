@@ -21,7 +21,7 @@ const StartExploreButton = forwardRef<HTMLButtonElement, StartExploreButtonProps
         onClick={onClick}
         disabled={disabled}
         data-pressed={pressed ? "true" : "false"}
-        className="btn-primary h-[52px] w-[248px] flex-col gap-0.5 rounded-[2px] px-6 data-[pressed=true]:brightness-[0.82] disabled:pointer-events-none"
+        className="explore-cta btn-primary h-[52px] w-[248px] flex-col gap-0.5 !rounded-full px-6 data-[pressed=true]:brightness-[0.82] disabled:pointer-events-none"
       >
         <span
           lang={isZh ? "zh-CN" : locale === "it" ? "it" : "en"}

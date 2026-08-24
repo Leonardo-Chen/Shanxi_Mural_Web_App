@@ -1,20 +1,67 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4.2;
+const ZOOM_STEP = 1.22;
 
 type BoundedMuralViewerProps = {
   src: string;
   alt: string;
   describedBy?: string;
   resetKey?: string;
+  onFitSize?: (size: { naturalWidth: number; naturalHeight: number }) => void;
 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function ZoomButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onPointerDown={(event) => event.stopPropagation()}
+      disabled={disabled}
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 bg-rice text-[16px] leading-none text-ink/75 shadow-[0_8px_24px_rgb(33_51_56_/_12%)] transition-colors hover:border-ink/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      {children}
+    </button>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 18 18"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3.2 8.1 9 3.2l5.8 4.9V14.6c0 .6-.5 1.1-1.1 1.1H10.4v-4.2H7.6v4.2H4.3c-.6 0-1.1-.5-1.1-1.1V8.1Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 export default function BoundedMuralViewer({
@@ -22,11 +69,15 @@ export default function BoundedMuralViewer({
   alt,
   describedBy,
   resetKey,
+  onFitSize,
 }: BoundedMuralViewerProps) {
   const { t } = useLocale();
+  const [zoom, setZoom] = useState(1);
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const onFitSizeRef = useRef(onFitSize);
+  onFitSizeRef.current = onFitSize;
   const zoomRef = useRef(1);
   const panRef = useRef({ x: 0, y: 0 });
   const sizeRef = useRef({ dw: 0, dh: 0, vw: 0, vh: 0 });
@@ -86,7 +137,44 @@ export default function BoundedMuralViewer({
     zoomRef.current = 1;
     panRef.current = { x: 0, y: 0 };
     layoutImage();
+    setZoom(1);
   }, [layoutImage]);
+
+  const zoomAt = useCallback(
+    (clientX: number, clientY: number, nextZoom: number) => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+      const rect = viewport.getBoundingClientRect();
+      const cx = clientX - rect.left - rect.width / 2;
+      const cy = clientY - rect.top - rect.height / 2;
+      const prev = zoomRef.current;
+      const next = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+      const k = next / Math.max(prev, 0.001);
+      panRef.current = {
+        x: cx - (cx - panRef.current.x) * k,
+        y: cy - (cy - panRef.current.y) * k,
+      };
+      zoomRef.current = next;
+      clampPan();
+      applyTransform();
+      setZoom(next);
+    },
+    [applyTransform, clampPan]
+  );
+
+  const zoomFromCenter = useCallback(
+    (factor: number) => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+      const rect = viewport.getBoundingClientRect();
+      zoomAt(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+        zoomRef.current * factor
+      );
+    },
+    [zoomAt]
+  );
 
   useEffect(() => {
     fitView();
@@ -102,32 +190,29 @@ export default function BoundedMuralViewer({
 
     const onLoad = () => layoutImage();
     image?.addEventListener("load", onLoad);
+    const reportNatural = () => {
+      if (!image?.naturalWidth) return;
+      onFitSizeRef.current?.({
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+      });
+    };
+    image?.addEventListener("load", reportNatural);
+    if (image?.complete) {
+      reportNatural();
+      layoutImage();
+    }
 
     return () => {
       resize.disconnect();
       image?.removeEventListener("load", onLoad);
+      image?.removeEventListener("load", reportNatural);
     };
   }, [layoutImage, src]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-
-    const zoomAt = (clientX: number, clientY: number, nextZoom: number) => {
-      const rect = viewport.getBoundingClientRect();
-      const cx = clientX - rect.left - rect.width / 2;
-      const cy = clientY - rect.top - rect.height / 2;
-      const prev = zoomRef.current;
-      const next = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
-      const k = next / prev;
-      panRef.current = {
-        x: cx - (cx - panRef.current.x) * k,
-        y: cy - (cy - panRef.current.y) * k,
-      };
-      zoomRef.current = next;
-      clampPan();
-      applyTransform();
-    };
 
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
@@ -138,6 +223,9 @@ export default function BoundedMuralViewer({
 
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
+      if ((event.target as Element | null)?.closest("[data-zoom-toolbar]")) {
+        return;
+      }
       event.stopPropagation();
       pointersRef.current.set(event.pointerId, {
         x: event.clientX,
@@ -209,6 +297,7 @@ export default function BoundedMuralViewer({
       dragRef.current = null;
       clampPan();
       applyTransform();
+      setZoom(zoomRef.current);
       try {
         viewport.releasePointerCapture(event.pointerId);
       } catch {
@@ -266,29 +355,55 @@ export default function BoundedMuralViewer({
       viewport.removeEventListener("pointercancel", onPointerUp);
       viewport.removeEventListener("keydown", onKeyDown);
     };
-  }, [applyTransform, clampPan, fitView]);
+  }, [applyTransform, clampPan, fitView, zoomAt]);
 
   return (
-    <div
-      ref={viewportRef}
-      tabIndex={0}
-      role="region"
-      aria-label={t("detail.panZoom", { alt })}
-      className="relative h-full w-full cursor-grab touch-none overflow-hidden bg-[#B8B0A4] outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-inset active:cursor-grabbing"
-    >
+    <div className="relative h-full w-full overflow-hidden bg-[#B8B0A4] [contain:paint]">
       <div
-        ref={stageRef}
-        className="absolute left-1/2 top-1/2 origin-center will-change-transform"
+        ref={viewportRef}
+        tabIndex={0}
+        role="region"
+        aria-label={t("detail.panZoom", { alt })}
+        className="relative h-full w-full cursor-grab touch-none overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-inset active:cursor-grabbing [clip-path:inset(0)]"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imageRef}
-          src={src}
-          alt={alt}
-          aria-describedby={describedBy}
-          draggable={false}
-          className="h-full w-full select-none object-fill"
-        />
+        <div
+          ref={stageRef}
+          className="absolute left-1/2 top-1/2 origin-center will-change-transform"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imageRef}
+            src={src}
+            alt={alt}
+            aria-describedby={describedBy}
+            draggable={false}
+            className="h-full w-full select-none object-fill"
+          />
+        </div>
+      </div>
+      <div
+        data-zoom-toolbar
+        className="absolute bottom-3 right-3 z-10 flex flex-col gap-1.5"
+        role="toolbar"
+        aria-label={t("home.controls")}
+      >
+        <ZoomButton
+          label={t("map.zoomIn")}
+          onClick={() => zoomFromCenter(ZOOM_STEP)}
+          disabled={zoom >= MAX_ZOOM - 0.001}
+        >
+          +
+        </ZoomButton>
+        <ZoomButton
+          label={t("map.zoomOut")}
+          onClick={() => zoomFromCenter(1 / ZOOM_STEP)}
+          disabled={zoom <= MIN_ZOOM + 0.001}
+        >
+          −
+        </ZoomButton>
+        <ZoomButton label={t("map.reset")} onClick={fitView}>
+          <HomeIcon />
+        </ZoomButton>
       </div>
     </div>
   );

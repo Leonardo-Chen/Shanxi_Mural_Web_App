@@ -24,6 +24,7 @@ interface DraggableCanvasProps {
   focusingId?: string | null;
   onOutlineComplete?: (cardId: string) => void;
   hasDraggedRef?: React.RefObject<boolean | null>;
+  zoom?: number;
 }
 
 export default function DraggableCanvas({
@@ -43,6 +44,7 @@ export default function DraggableCanvas({
   focusingId = null,
   onOutlineComplete,
   hasDraggedRef,
+  zoom = 1,
 }: DraggableCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const anchors = useMemo(() => scaleAnchors(isMobile), [isMobile]);
@@ -94,12 +96,12 @@ export default function DraggableCanvas({
       style={{ touchAction: "none" }}
     >
       <div
-        className="absolute will-change-transform grid"
+        className="absolute origin-top-left will-change-transform grid"
         id="grid"
         style={{
           width: canvasWidth,
           height: canvasHeight,
-          transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+          transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${zoom})`,
         }}
       >
         {/* Connection paths */}

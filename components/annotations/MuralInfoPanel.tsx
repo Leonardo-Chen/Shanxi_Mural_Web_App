@@ -91,7 +91,7 @@ export default function MuralInfoPanel({
         </section>
       )}
 
-      <section className="mt-6 border-t border-stone/15 pt-4">
+      <section className="mt-6 border-t border-ink/10 pt-4">
         <h3 className="type-meta mb-2 text-ink/70">
           {t("detail.research")}
         </h3>

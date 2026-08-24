@@ -15,6 +15,8 @@ import {
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { locPrefecture, locTemple, locTemplePinName } from "@/lib/i18n/localize";
+import CanvasViewControls from "@/components/mural/CanvasViewControls";
+import CanvasInstruction from "@/components/mural/CanvasInstruction";
 
 interface ShanxiMapProps {
   onSelectTemple: (templeId: string) => void;
@@ -182,6 +184,7 @@ export default function ShanxiMap({
     k: 1,
   });
   const [isPanning, setIsPanning] = useState(false);
+  const [hintVisible, setHintVisible] = useState(false);
 
   const selectTimerRef = useRef<number | null>(null);
   const clearHoverTimerRef = useRef<number | null>(null);
@@ -251,6 +254,27 @@ export default function ShanxiMap({
       zoomTweenRef.current?.kill();
     };
   }, []);
+
+  useEffect(() => {
+    if (focusTempleId) {
+      setHintVisible(false);
+      return;
+    }
+    setHintVisible(true);
+    const timer = window.setTimeout(() => setHintVisible(false), 3200);
+    return () => window.clearTimeout(timer);
+  }, [focusTempleId]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && hintVisible) {
+        event.preventDefault();
+        setHintVisible(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hintVisible]);
 
   useEffect(() => {
     let cancelled = false;
@@ -658,13 +682,13 @@ export default function ShanxiMap({
   return (
     <div className="fixed inset-0 z-10">
       {loadError && (
-        <p className="absolute inset-0 z-10 flex items-center justify-center font-sans text-sm text-ink/50">
+        <p className="absolute inset-0 z-10 flex items-center justify-center type-body text-ink/50">
           {t("map.loadError")}
         </p>
       )}
 
       {!geo && !loadError && (
-        <p className="absolute inset-0 z-10 flex items-center justify-center font-sans text-sm text-ink/40">
+        <p className="absolute inset-0 z-10 flex items-center justify-center type-body text-ink/40">
           {t("map.loading")}
         </p>
       )}
@@ -976,7 +1000,7 @@ export default function ShanxiMap({
                             fontWeight={isFocused || featured ? 600 : 400}
                             style={{
                               fontFamily:
-                                "var(--font-serif), Songti SC, serif",
+                                "MiSans, var(--font-sans), sans-serif",
                             }}
                           >
                             {line}
@@ -992,78 +1016,65 @@ export default function ShanxiMap({
         </svg>
       )}
 
-      <div className="pointer-events-none absolute inset-x-4 bottom-5 z-20 flex flex-col gap-3 md:inset-x-6 md:bottom-8 md:pr-72">
-        {visibleTemples.length > 0 ? (
-          <aside
-            className="pointer-events-auto md:hidden"
-            aria-live="polite"
-          >
-            <div className="rounded-sm border border-ink/10 bg-rice/95 p-2 shadow-sm backdrop-blur-sm">
-              <ul className="flex gap-2 overflow-x-auto">
-                {visibleTemples.map((temple) => {
-                  const copy = locTemple(locale, temple);
-                  const hasMurals = templeHasMurals(temple.id);
-                  return (
-                    <li key={temple.id} className="min-w-[9.5rem] shrink-0">
-                      <button
-                        type="button"
-                        disabled={!hasMurals}
-                        onClick={() => handleSelect(temple.id)}
-                        className={`w-full rounded-sm px-3 py-2 text-left ${
-                          hasMurals
-                            ? "bg-cinnabar/10"
-                            : "cursor-default bg-stone/10 grayscale"
-                        }`}
-                      >
-                        <span className="block font-serif text-sm leading-snug text-ink">
-                          {copy.name}
-                        </span>
-                        <span className="type-meta mt-1 block text-gold">
-                          {copy.region.replace(/^山西[·•]\s*/, "")} · {copy.era}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
-        ) : null}
+      <CanvasInstruction
+        messageKey="map.hint"
+        floating
+        visible={hintVisible}
+        onClose={() => setHintVisible(false)}
+      />
 
-        <div className="flex items-end gap-3 md:gap-4">
-          <div className="pointer-events-auto flex flex-col gap-1">
-            <ZoomButton label={t("map.zoomIn")} onClick={() => zoomByButton(1)}>
-              +
-            </ZoomButton>
-            <ZoomButton label={t("map.zoomOut")} onClick={() => zoomByButton(-1)}>
-              −
-            </ZoomButton>
-            <ZoomButton label={t("map.reset")} onClick={resetView}>
-              ⌂
-            </ZoomButton>
+      <h2 id={titleId} className="sr-only">
+        {t("map.title")}
+      </h2>
+
+      <CanvasViewControls
+        onBack={onChooseSticker}
+        backLabel={t("match.reselect")}
+        backPlacement="top-left"
+        onZoomIn={() => zoomByButton(1)}
+        onZoomOut={() => zoomByButton(-1)}
+        onReset={resetView}
+        canZoomIn={transform.k < MAX_ZOOM - 0.001}
+        canZoomOut={transform.k > MIN_ZOOM + 0.001}
+      />
+
+      {visibleTemples.length > 0 ? (
+        <aside
+          className="pointer-events-auto absolute inset-x-4 bottom-5 z-20 md:hidden"
+          aria-live="polite"
+        >
+          <div className="overflow-hidden rounded-2xl border border-ink/12 bg-rice/92 shadow-[0_16px_40px_rgb(33_51_56_/_14%)] backdrop-blur-md">
+            <ul className="flex gap-1 overflow-x-auto p-2">
+              {visibleTemples.map((temple) => {
+                const copy = locTemple(locale, temple);
+                const hasMurals = templeHasMurals(temple.id);
+                return (
+                  <li key={temple.id} className="min-w-[9.5rem] shrink-0">
+                    <button
+                      type="button"
+                      disabled={!hasMurals}
+                      onClick={() => handleSelect(temple.id)}
+                      className={`w-full rounded-xl px-3 py-2.5 text-left ${
+                        hasMurals
+                          ? "bg-cinnabar/10"
+                          : "cursor-default bg-stone/10 grayscale"
+                      }`}
+                    >
+                      <span className="type-card block text-ink">{copy.name}</span>
+                      <span className="type-meta mt-1 block text-gold">
+                        {copy.region.replace(/^山西[·•]\s*/, "")} · {copy.era}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-          <div className="min-w-0 max-w-[min(22rem,calc(100%-3.5rem))] pb-0.5">
-            <h2
-              id={titleId}
-              className="font-serif text-base leading-snug text-ink md:text-lg"
-            >
-              {t("map.title")}
-            </h2>
-            {onChooseSticker ? (
-              <button
-                type="button"
-                onClick={onChooseSticker}
-                className="btn-secondary pointer-events-auto mt-2 bg-rice/85"
-              >
-                {t("map.chooseSticker")}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </div>
+        </aside>
+      ) : null}
 
       <aside
-        className={`absolute right-5 top-1/2 z-30 hidden w-64 max-w-[min(18rem,calc(100%-8rem))] -translate-y-1/2 md:right-8 md:block ${
+        className={`absolute right-6 top-1/2 z-30 hidden w-[280px] max-w-[min(18rem,calc(100%-8rem))] -translate-y-1/2 md:block ${
           visibleTemples.length > 0 ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-live="polite"
@@ -1072,17 +1083,18 @@ export default function ShanxiMap({
         onMouseLeave={scheduleClearHover}
       >
         <div
-          className={`rounded-sm border border-ink/10 bg-rice/90 p-3 shadow-sm backdrop-blur-sm transition-all duration-300 ${
+          className={`overflow-hidden rounded-2xl border border-ink/12 bg-rice/92 shadow-[0_16px_40px_rgb(33_51_56_/_14%)] backdrop-blur-md transition-all duration-300 ${
             visibleTemples.length > 0
               ? "translate-x-0 opacity-100"
               : "translate-x-2 opacity-0"
           }`}
         >
           {visibleTemples.length > 0 ? (
-            <ul className="flex max-h-[min(28rem,60vh)] flex-col gap-1 overflow-y-auto">
+            <ul className="flex max-h-[min(28rem,60vh)] flex-col gap-0.5 overflow-y-auto p-3">
               {pinnedPrefecture && !pinnedTempleId && (
-                <li className="mb-1 px-1 font-sans text-[10px] tracking-wider text-stone">
-                  {locPrefecture(locale, pinnedPrefecture)} · {t("map.templeCount", { count: visibleTemples.length })}
+                <li className="type-meta px-3 pb-2 text-cinnabar">
+                  {locPrefecture(locale, pinnedPrefecture)} ·{" "}
+                  {t("map.templeCount", { count: visibleTemples.length })}
                 </li>
               )}
               {visibleTemples.map((temple) => {
@@ -1090,29 +1102,27 @@ export default function ShanxiMap({
                 const selected = temple.id === focusTempleId;
                 const hasMurals = templeHasMurals(temple.id);
                 return (
-                <li key={temple.id}>
-                  <button
-                    type="button"
-                    disabled={!hasMurals}
-                    onClick={() => handleSelect(temple.id)}
-                    className={`w-full rounded-sm px-3 py-2.5 text-left transition-colors hover:bg-parchment/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar ${
-                      selected ? "bg-cinnabar/10" : ""
-                    }`}
-                  >
-                    <span className="block font-serif text-sm leading-snug text-ink">
-                      {copy.name}
-                    </span>
-                    <span className="mt-0.5 block font-sans text-[10px] tracking-wider text-stone">
-                      {copy.region.replace(/^山西[·•]\s*/, "")} · {copy.era}
-                    </span>
-                    <span className="mt-1.5 line-clamp-3 font-serif text-[11px] leading-snug text-ink/60">
-                      {copy.tagline}
-                    </span>
-                    <span className="mt-2 block font-sans text-[10px] tracking-wider text-cinnabar">
-                      {t("map.enter")}
-                    </span>
-                  </button>
-                </li>
+                  <li key={temple.id}>
+                    <button
+                      type="button"
+                      disabled={!hasMurals}
+                      onClick={() => handleSelect(temple.id)}
+                      className={`w-full rounded-xl px-3 py-3 text-left transition-colors hover:bg-parchment/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar ${
+                        selected ? "bg-cinnabar/10" : ""
+                      } ${hasMurals ? "" : "cursor-default grayscale"}`}
+                    >
+                      <span className="type-card block text-ink">{copy.name}</span>
+                      <span className="type-meta mt-1 block text-gold">
+                        {copy.region.replace(/^山西[·•]\s*/, "")} · {copy.era}
+                      </span>
+                      <span className="type-body mt-2 line-clamp-3 text-ink/75">
+                        {copy.tagline}
+                      </span>
+                      <span className="type-meta mt-2.5 block text-cinnabar">
+                        {t("map.enter")}
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
             </ul>
@@ -1120,26 +1130,5 @@ export default function ShanxiMap({
         </div>
       </aside>
     </div>
-  );
-}
-
-function ZoomButton({
-  children,
-  label,
-  onClick,
-}: {
-  children: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-sm border border-ink/15 bg-rice/85 font-sans text-base leading-none text-ink/70 backdrop-blur-sm transition-colors hover:border-ink/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
-    >
-      {children}
-    </button>
   );
 }

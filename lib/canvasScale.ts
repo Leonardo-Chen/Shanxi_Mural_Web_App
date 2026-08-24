@@ -4,9 +4,9 @@ import type { MuralCardData } from "@/data/muralCards";
 const DESKTOP = canvasLayout.desktop;
 const MOBILE = canvasLayout.mobile;
 
-/** 寺庙画布统一卡片尺寸（桌面坐标） */
-export const GRID_CARD = { width: 240, height: 320 } as const;
-export const GRID_GAP = { x: 56, y: 56 } as const;
+/** 寺庙画布统一卡片尺寸（桌面坐标），画幅与匹配页壁画卡一致 */
+export const GRID_CARD = { width: 240, height: 200 } as const;
+export const GRID_GAP = { x: 28, y: 56 } as const;
 
 /** 寺庙无限画布（桌面坐标）；卡片在视口附近虚拟生成 */
 export const TEMPLE_INFINITE_CANVAS = { width: 24000, height: 24000 } as const;
@@ -320,9 +320,9 @@ function chooseFittedGrid(
   availH: number,
   isMobile: boolean
 ) {
-  const gapX = isMobile ? 16 : 24;
-  const gapY = isMobile ? 16 : 24;
-  const maxCardW = isMobile ? 168 : 220;
+  const gapX = isMobile ? 20 : 28;
+  const gapY = isMobile ? 48 : 56;
+  const maxCardW = isMobile ? 200 : 280;
   const minCardW = 72;
   const maxCols = Math.min(count, isMobile ? 3 : 6);
 
@@ -366,8 +366,8 @@ export function layoutCenteredCardGrid(
   canvas: { width: number; height: number };
   center: { x: number; y: number };
 } {
-  const insetTop = isMobile ? 96 : 112;
-  const insetBottom = 28;
+  const insetTop = isMobile ? 88 : 88;
+  const insetBottom = 96;
   const insetX = isMobile ? 20 : 48;
   const canvas = {
     width: Math.max(1, Math.round(viewport.width)),

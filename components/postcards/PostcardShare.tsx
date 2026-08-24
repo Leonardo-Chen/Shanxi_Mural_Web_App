@@ -8,11 +8,15 @@ import { locCollectedTitle } from "@/lib/i18n/localize";
 interface PostcardShareProps {
   postcard: PostcardAsset;
   kind?: "postcard" | "sticker";
+  compact?: boolean;
+  note?: string;
 }
 
 export default function PostcardShare({
   postcard,
   kind = "postcard",
+  compact = false,
+  note = "",
 }: PostcardShareProps) {
   const { locale, t } = useLocale();
   const [copied, setCopied] = useState(false);
@@ -25,10 +29,15 @@ export default function PostcardShare({
   }, []);
 
   const localizedTitle = locCollectedTitle(locale, postcard.id, postcard.title);
-  const shareText = t(
-    kind === "sticker" ? "postcard.shareSticker" : "postcard.shareCard",
-    { brand: t("brand.siteName"), title: localizedTitle }
-  );
+  const shareText = [
+    t(kind === "sticker" ? "postcard.shareSticker" : "postcard.shareCard", {
+      brand: t("brand.siteName"),
+      title: localizedTitle,
+    }),
+    note.trim(),
+  ]
+    .filter(Boolean)
+    .join("\n");
   const weiboHref = useMemo(
     () =>
       `https://service.weibo.com/share/share.php?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(shareText)}`,
@@ -58,14 +67,18 @@ export default function PostcardShare({
     }
   }, [pageUrl, shareText]);
 
+  const actionClass = compact
+    ? "type-ui inline-flex h-9 items-center rounded-full border border-ink/15 bg-transparent px-3.5 text-ink/80 transition-colors hover:border-cinnabar hover:text-cinnabar"
+    : "btn-secondary min-h-11 px-3";
+
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+    <div
+      className={`flex flex-wrap items-center justify-center gap-2 ${
+        compact ? "mt-3" : "mt-4"
+      }`}
+    >
       {canShare && (
-        <button
-          type="button"
-          onClick={shareNative}
-          className="btn-secondary min-h-11 px-3"
-        >
+        <button type="button" onClick={shareNative} className={actionClass}>
           {t("postcard.shareNative")}
         </button>
       )}
@@ -73,21 +86,17 @@ export default function PostcardShare({
         href={weiboHref}
         target="_blank"
         rel="noreferrer"
-        className="btn-secondary min-h-11 px-3"
+        className={actionClass}
       >
         {t("postcard.weibo")}
       </a>
-      <button
-        type="button"
-        onClick={copyLink}
-        className="btn-secondary min-h-11 px-3"
-      >
+      <button type="button" onClick={copyLink} className={actionClass}>
         {copied ? t("postcard.copied") : t("postcard.copy")}
       </button>
       <a
         href={postcard.src}
         download={postcard.fileName}
-        className="btn-secondary min-h-11 px-3"
+        className={actionClass}
       >
         {t("postcard.download")}
       </a>

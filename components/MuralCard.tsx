@@ -41,6 +41,7 @@ function MuralCardInner({
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lift = isHovered || isSelected || focusing;
 
   const depthFactor = 1 - card.depth * 0.08;
   // 拖动时关闭视差，避免卡片/图片相对画布“单独滑动”
@@ -125,8 +126,8 @@ function MuralCardInner({
           width: card.width,
           height: card.height,
           transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
-          zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
-          opacity: introVisible ? 0 : 1,
+          zIndex: lift ? 30 : Math.round(card.depth * 20),
+          opacity: introVisible ? 0 : muted ? 0.58 : 1,
           transition: transformTransition,
           pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
         }}
@@ -151,7 +152,6 @@ function MuralCardInner({
     const mural = muralById[card.muralId];
     const copy = mural ? locAnnotationMural(locale, mural) : null;
     const title = copy?.displayTitle ?? card.title;
-    const lift = isHovered || isSelected || focusing;
 
     return (
       <div
@@ -166,26 +166,24 @@ function MuralCardInner({
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="absolute cursor-pointer will-change-transform"
+        className="mural-option absolute cursor-pointer text-left will-change-transform"
         style={{
           width: card.width,
           height: card.height,
           transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${
-            focusing ? depthFactor * 1.04 : scale
+            focusing ? depthFactor * 1.04 : depthFactor
           })`,
           zIndex: lift ? 30 : Math.round(card.depth * 20),
-          opacity: introVisible ? 0 : muted ? 0.42 : 1,
+          opacity: introVisible ? 0 : muted ? 0.58 : 1,
           transition: transformTransition,
           pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
         }}
+        aria-pressed={isSelected}
       >
         <ExploreMuralCardContent
           title={title}
-          hall={copy?.hall ?? card.hall}
-          period={copy?.dynasty ?? card.period}
           image={mural?.imageSrc ?? card.image}
           imageAlt={title}
-          isHovered={isHovered}
         />
       </div>
     );
@@ -210,22 +208,24 @@ function MuralCardInner({
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="absolute cursor-pointer will-change-transform grid__item"
+      className="mural-option absolute cursor-pointer text-left will-change-transform grid__item"
       style={{
         width: card.width,
         height: card.height,
-        transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${scale})`,
-        zIndex: isHovered || isSelected ? 30 : Math.round(card.depth * 20),
-        opacity: introVisible ? 0 : 1,
+        transform: `translate3d(${card.x + parallaxX}px, ${card.y + parallaxY}px, 0) rotate(${rotation}deg) scale(${
+          focusing ? depthFactor * 1.04 : depthFactor
+        })`,
+        zIndex: lift ? 30 : Math.round(card.depth * 20),
+        opacity: introVisible ? 0 : muted ? 0.58 : 1,
         transition: transformTransition,
         pointerEvents: isDetailOpen && !isSelected ? "none" : "auto",
       }}
+      aria-pressed={isSelected}
     >
       <StoryCardContent
         story={story}
         title={storyTitle}
         imageAlt={storyAlt}
-        isHovered={isHovered}
         priority={priority}
       />
     </div>
@@ -275,46 +275,33 @@ function TempleCardContent({
 
 function ExploreMuralCardContent({
   title,
-  hall,
-  period,
   image,
   imageAlt,
-  isHovered,
 }: {
   title: string;
-  hall?: string;
-  period?: string;
   image?: string;
   imageAlt: string;
-  isHovered: boolean;
 }) {
-  const meta = [hall, period].filter(Boolean).join(" · ");
-
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-[2px] border border-[rgb(33_51_56_/_18%)] bg-rice shadow-none transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[rgb(33_51_56_/_35%)] hover:shadow-hover">
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-rice">
+    <span className="mural-option-visual relative flex h-full w-full flex-col">
+      <span className="relative min-h-0 w-full flex-1 overflow-hidden border border-[rgb(33_51_56_/_18%)] bg-[#B8B0A4]">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
             alt={imageAlt}
             draggable={false}
-            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
+            className="pointer-events-none h-full w-full select-none object-cover"
             style={{ WebkitUserDrag: "none" } as React.CSSProperties}
           />
-        ) : null}
-      </div>
-      <div className="shrink-0 px-3 py-2.5">
-        <p className={`type-caption line-clamp-2 ${isHovered ? "text-ink" : "text-ink"}`}>
-          {title}
-        </p>
-        {meta ? (
-          <p className="type-meta mt-1 text-gold">
-            {meta}
-          </p>
-        ) : null}
-      </div>
-    </div>
+        ) : (
+          <span className="block h-full w-full bg-[#B8B0A4]" aria-hidden="true" />
+        )}
+      </span>
+      <span className="type-meta mt-2 line-clamp-2 block shrink-0 text-center text-ink/75">
+        {title}
+      </span>
+    </span>
   );
 }
 
@@ -322,38 +309,30 @@ function StoryCardContent({
   story,
   title,
   imageAlt,
-  isHovered,
   priority,
 }: {
   story: StoryCardData;
   title: string;
   imageAlt: string;
-  isHovered: boolean;
   priority: boolean;
 }) {
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-[2px] border border-[rgb(33_51_56_/_18%)] bg-rice shadow-none transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[rgb(33_51_56_/_35%)] hover:shadow-hover">
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-rice">
+    <span className="mural-option-visual relative flex h-full w-full flex-col">
+      <span className="relative min-h-0 w-full flex-1 overflow-hidden border border-[rgb(33_51_56_/_18%)] bg-[#B8B0A4]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={story.image}
           alt={imageAlt}
           draggable={false}
           fetchPriority={priority ? "high" : "auto"}
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover group-hover:scale-[1.03] motion-safe:transition-transform motion-safe:duration-[400ms] motion-safe:ease-out"
+          className="pointer-events-none h-full w-full select-none object-cover"
           style={{ WebkitUserDrag: "none" } as React.CSSProperties}
         />
-      </div>
-      <div className="flex-1 flex items-center justify-start px-3 py-2">
-        <p
-          className={`type-caption line-clamp-4 text-left ${
-            isHovered ? "text-ink" : "text-ink/80"
-          }`}
-        >
-          {title}
-        </p>
-      </div>
-    </div>
+      </span>
+      <span className="type-meta mt-2 line-clamp-2 block shrink-0 text-center text-ink/75">
+        {title}
+      </span>
+    </span>
   );
 }
 

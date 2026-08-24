@@ -50,14 +50,16 @@ export default function MuralOption({
         left: layout.x,
         top: layout.y,
         width: layout.width,
-        height,
         zIndex: selected || focusing ? 30 : layout.zIndex ?? 1,
         transform: `rotate(${layout.rotation ?? 0}deg)`,
         opacity: muted ? 0.58 : 1,
       }}
     >
-      <span className="mural-option-visual relative block h-full w-full">
-        <span className="block h-full w-full overflow-hidden border border-[rgb(33_51_56_/_18%)] bg-rice">
+      <span className="mural-option-visual relative block w-full">
+        <span
+          className="relative block w-full overflow-hidden border border-[rgb(33_51_56_/_18%)] bg-rice"
+          style={{ height }}
+        >
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -65,7 +67,7 @@ export default function MuralOption({
               alt={mural.alt}
               draggable={false}
               loading="lazy"
-              className="h-full w-full select-none object-contain"
+              className="block h-full w-full select-none object-cover"
             />
           ) : (
             <span
@@ -73,20 +75,20 @@ export default function MuralOption({
               aria-hidden="true"
             />
           )}
+
+          <OutlineAnimation
+            key={outlineKey}
+            active={selected}
+            width={layout.width}
+            height={height}
+            reducedMotion={reducedMotion}
+            onComplete={() => onOutlineComplete?.(mural.id)}
+          />
         </span>
 
-        <span className="type-meta-en pointer-events-none absolute bottom-3 left-3 bg-rice/90 px-2 py-1 text-ink/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="type-meta mt-2 line-clamp-2 block text-center text-ink/75">
           {copy.title}
         </span>
-
-        <OutlineAnimation
-          key={outlineKey}
-          active={selected}
-          width={layout.width}
-          height={height}
-          reducedMotion={reducedMotion}
-          onComplete={() => onOutlineComplete?.(mural.id)}
-        />
       </span>
     </button>
   );

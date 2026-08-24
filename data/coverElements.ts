@@ -74,6 +74,37 @@ export const PLACEHOLDER_TONES = [
   "#BEB6AA",
 ] as const;
 
+/** 探索画布 5×4 紧凑网格：列距统一、行内底对齐、无旋转。 */
+const CANVAS_GRID = {
+  originX: 1960,
+  originY: 960,
+  col: 340,
+  row: 490,
+  cellHeight: 452,
+  columns: 5,
+  rows: 4,
+} as const;
+
+/** 假无限画布的邻格偏移（含原点）。 */
+export const CANVAS_TILE_OFFSETS = [-1, 0, 1].flatMap((ox) =>
+  [-1, 0, 1].map((oy) => ({ ox, oy }))
+);
+
+function canvasGridSlot(
+  col: number,
+  row: number,
+  width: number,
+  zIndex: number
+) {
+  return {
+    x: CANVAS_GRID.originX + col * CANVAS_GRID.col,
+    y: CANVAS_GRID.originY + row * CANVAS_GRID.row,
+    width,
+    rotation: 0,
+    zIndex,
+  };
+}
+
 /**
  * 预先设计的素材容器。位置与动效固定，图片在打开页面时随机填入。
  * coverPosition.x / y 为视口百分比（容器左上角）。
@@ -93,7 +124,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 4,
       mobileWidth: 112,
     },
-    canvasPosition: { x: 2029, y: 1682, width: 300, rotation: -2, zIndex: 4 },
+    canvasPosition: canvasGridSlot(1, 2, 300, 4),
     motion: { driftX: 14, driftY: 9, duration: 18, delay: 0.2 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 0,
@@ -111,7 +142,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 4,
       mobileWidth: 100,
     },
-    canvasPosition: { x: 3311, y: 1258, width: 260, rotation: 2, zIndex: 4 },
+    canvasPosition: canvasGridSlot(4, 1, 300, 4),
     motion: { driftX: -16, driftY: 8, duration: 20, delay: 0.5 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 2,
@@ -129,7 +160,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 5,
       mobileWidth: 120,
     },
-    canvasPosition: { x: 2737, y: 1696, width: 310, rotation: 1, zIndex: 5 },
+    canvasPosition: canvasGridSlot(2, 2, 300, 5),
     motion: { driftX: 18, driftY: -7, duration: 16, delay: 0.1 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 1,
@@ -147,7 +178,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 3,
       mobileWidth: 128,
     },
-    canvasPosition: { x: 2503, y: 1240, width: 320, rotation: -1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(2, 1, 300, 3),
     motion: { driftX: 10, driftY: 12, duration: 22, delay: 0.8 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 3,
@@ -165,7 +196,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 3,
       mobileWidth: 108,
     },
-    canvasPosition: { x: 2743, y: 2166, width: 270, rotation: 2, zIndex: 3 },
+    canvasPosition: canvasGridSlot(2, 3, 300, 3),
     motion: { driftX: -12, driftY: -10, duration: 19, delay: 0.3 },
     visibility: { desktop: true, tablet: true, mobile: false },
     tone: 0,
@@ -183,7 +214,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 3,
       mobileWidth: 142,
     },
-    canvasPosition: { x: 2887, y: 1242, width: 360, rotation: -1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(3, 1, 300, 3),
     motion: { driftX: -14, driftY: 11, duration: 17, delay: 0.6 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 4,
@@ -201,7 +232,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 3,
       mobileWidth: 148,
     },
-    canvasPosition: { x: 2309, y: 2176, width: 370, rotation: 1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(1, 3, 300, 3),
     motion: { driftX: 11, driftY: 8, duration: 15, delay: 0.4 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 2,
@@ -219,7 +250,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 4,
       mobileWidth: 140,
     },
-    canvasPosition: { x: 3111, y: 1706, width: 350, rotation: -2, zIndex: 4 },
+    canvasPosition: canvasGridSlot(3, 2, 300, 4),
     motion: { driftX: -10, driftY: 13, duration: 21, delay: 0.15 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 1,
@@ -237,7 +268,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 2,
       mobileWidth: 150,
     },
-    canvasPosition: { x: 2059, y: 1238, width: 380, rotation: 0, zIndex: 2 },
+    canvasPosition: canvasGridSlot(1, 1, 300, 2),
     motion: { driftX: -13, driftY: -8, duration: 16, delay: 0.9 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 3,
@@ -255,7 +286,7 @@ export const coverElements: CoverElement[] = [
       zIndex: 5,
       mobileWidth: 100,
     },
-    canvasPosition: { x: 2393, y: 1728, width: 280, rotation: -1, zIndex: 5 },
+    canvasPosition: canvasGridSlot(3, 3, 300, 5),
     motion: { driftX: 9, driftY: 14, duration: 23, delay: 0.35 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 0,
@@ -270,7 +301,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 160, aspectRatio: 0.84, rotation: -1.2, zIndex: 3, mobileWidth: 120 },
-    canvasPosition: { x: 1660, y: 820, width: 310, rotation: -1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(0, 0, 300, 3),
     motion: { driftX: 8, driftY: 6, duration: 17, delay: 0.2 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 1,
@@ -281,7 +312,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 160, aspectRatio: 0.8, rotation: 0.8, zIndex: 3, mobileWidth: 120 },
-    canvasPosition: { x: 2280, y: 740, width: 300, rotation: 1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(1, 0, 300, 3),
     motion: { driftX: -7, driftY: 9, duration: 19, delay: 0.4 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 2,
@@ -292,7 +323,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 160, aspectRatio: 0.88, rotation: -0.6, zIndex: 2, mobileWidth: 120 },
-    canvasPosition: { x: 2980, y: 720, width: 320, rotation: -1, zIndex: 2 },
+    canvasPosition: canvasGridSlot(2, 0, 300, 2),
     motion: { driftX: 10, driftY: -5, duration: 16, delay: 0.15 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 3,
@@ -303,7 +334,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 150, aspectRatio: 0.76, rotation: 1.4, zIndex: 4, mobileWidth: 118 },
-    canvasPosition: { x: 3700, y: 1080, width: 290, rotation: 1, zIndex: 4 },
+    canvasPosition: canvasGridSlot(3, 0, 300, 4),
     motion: { driftX: -9, driftY: 7, duration: 21, delay: 0.5 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 0,
@@ -314,7 +345,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 150, aspectRatio: 0.9, rotation: -1, zIndex: 3, mobileWidth: 118 },
-    canvasPosition: { x: 3720, y: 1680, width: 300, rotation: -1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(4, 0, 300, 3),
     motion: { driftX: 6, driftY: 11, duration: 18, delay: 0.25 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 4,
@@ -325,7 +356,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 155, aspectRatio: 0.82, rotation: 0.5, zIndex: 3, mobileWidth: 118 },
-    canvasPosition: { x: 3480, y: 2280, width: 310, rotation: 1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(4, 2, 300, 3),
     motion: { driftX: -8, driftY: -6, duration: 20, delay: 0.35 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 1,
@@ -336,7 +367,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 145, aspectRatio: 0.74, rotation: -1.5, zIndex: 2, mobileWidth: 116 },
-    canvasPosition: { x: 2920, y: 2720, width: 280, rotation: -2, zIndex: 2 },
+    canvasPosition: canvasGridSlot(4, 3, 300, 2),
     motion: { driftX: 9, driftY: 8, duration: 17, delay: 0.1 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 2,
@@ -347,7 +378,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 160, aspectRatio: 0.92, rotation: 1.1, zIndex: 3, mobileWidth: 120 },
-    canvasPosition: { x: 2180, y: 2680, width: 320, rotation: 1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(0, 3, 300, 3),
     motion: { driftX: -6, driftY: 10, duration: 19, delay: 0.45 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 3,
@@ -358,7 +389,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 150, aspectRatio: 0.78, rotation: -0.4, zIndex: 4, mobileWidth: 118 },
-    canvasPosition: { x: 1540, y: 2160, width: 300, rotation: 0, zIndex: 4 },
+    canvasPosition: canvasGridSlot(0, 2, 300, 4),
     motion: { driftX: 11, driftY: -7, duration: 16, delay: 0.3 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 0,
@@ -369,7 +400,7 @@ export const extraCanvasElements: CoverElement[] = [
     alt: "壁画人物",
     showOnCover: false,
     coverPosition: { x: 0, y: 0, width: 150, aspectRatio: 0.86, rotation: 1.2, zIndex: 3, mobileWidth: 118 },
-    canvasPosition: { x: 1480, y: 1420, width: 290, rotation: 1, zIndex: 3 },
+    canvasPosition: canvasGridSlot(0, 1, 300, 3),
     motion: { driftX: -10, driftY: 8, duration: 22, delay: 0.55 },
     visibility: { desktop: true, tablet: true, mobile: true },
     tone: 4,
@@ -450,22 +481,169 @@ export function getCanvasWidth(element: CoverElement, viewportWidth: number): nu
   return element.canvasPosition.width;
 }
 
+export function getCanvasTilePeriod(
+  viewportWidth: number,
+  canvasSize: { width: number; height: number }
+): { x: number; y: number } {
+  const scaleX = viewportWidth < 768 ? canvasSize.width / 5600 : 1;
+  const scaleY = viewportWidth < 768 ? canvasSize.height / 3800 : 1;
+  return {
+    x: CANVAS_GRID.col * CANVAS_GRID.columns * scaleX,
+    y: CANVAS_GRID.row * CANVAS_GRID.rows * scaleY,
+  };
+}
+
 export function getCanvasPoint(
   element: CoverElement,
   viewportWidth: number,
   canvasSize: { width: number; height: number }
 ): { x: number; y: number } {
-  if (viewportWidth < 768) {
-    return {
-      x: element.canvasPosition.x * (canvasSize.width / 5600),
-      y: element.canvasPosition.y * (canvasSize.height / 3800),
-    };
-  }
-  return { x: element.canvasPosition.x, y: element.canvasPosition.y };
+  const scaleX = viewportWidth < 768 ? canvasSize.width / 5600 : 1;
+  const scaleY = viewportWidth < 768 ? canvasSize.height / 3800 : 1;
+  const width = getCanvasWidth(element, viewportWidth);
+  const height = width / element.coverPosition.aspectRatio;
+  return {
+    x: Math.round(element.canvasPosition.x * scaleX),
+    y: Math.round(
+      element.canvasPosition.y * scaleY + CANVAS_GRID.cellHeight * scaleY - height
+    ),
+  };
 }
 
 /** 「开始探索」按钮相对视口中心略偏下，与封面中央构图对齐。 */
 export const COVER_BUTTON_OFFSET_Y = 0.08;
+
+type CoverRect = { x: number; y: number; width: number; height: number };
+
+function rectsOverlap(a: CoverRect, b: CoverRect, padding = 16) {
+  return !(
+    a.x + a.width + padding <= b.x ||
+    b.x + b.width + padding <= a.x ||
+    a.y + a.height + padding <= b.y ||
+    b.y + b.height + padding <= a.y
+  );
+}
+
+function screenToCanvas(
+  x: number,
+  y: number,
+  viewport: { width: number; height: number },
+  canvasCenter: { x: number; y: number }
+) {
+  return {
+    x: x + canvasCenter.x - viewport.width / 2,
+    y: y + canvasCenter.y - viewport.height / 2,
+  };
+}
+
+function shuffleInPlace<T>(items: T[]) {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const current = items[i];
+    items[i] = items[j] as T;
+    items[j] = current as T;
+  }
+  return items;
+}
+
+/**
+ * 封面人物淡出后换到随机位置：避开顶栏、中央按钮，且不与其他仍可见的人物重叠。
+ */
+export function pickCoverCanvasPoint(
+  size: { width: number; height: number },
+  occupied: CoverRect[],
+  viewport: { width: number; height: number },
+  canvasCenter: { x: number; y: number },
+  options?: { avoid?: { x: number; y: number }; minDistance?: number }
+): { x: number; y: number } | null {
+  const chromeTop = getCoverChromeInset(viewport.width).top;
+  const margin = 16;
+  const hitW = size.width * 0.78;
+  const hitH = size.height * 0.78;
+  const maxX = Math.max(margin, viewport.width - size.width - margin);
+  const maxY = Math.max(chromeTop, viewport.height - size.height - margin);
+  const minX = margin;
+  const minY = chromeTop;
+  const minDistance = options?.minDistance ?? Math.max(140, size.width * 0.9);
+
+  const cta: CoverRect = {
+    x: viewport.width / 2 - 170,
+    y: viewport.height / 2 + viewport.height * COVER_BUTTON_OFFSET_Y - 70,
+    width: 340,
+    height: 160,
+  };
+
+  const tryScreen = (sx: number, sy: number, padding: number) => {
+    const screenRect: CoverRect = {
+      x: sx,
+      y: sy,
+      width: size.width,
+      height: size.height,
+    };
+    if (rectsOverlap(screenRect, cta, 8)) return null;
+    const canvas = screenToCanvas(sx, sy, viewport, canvasCenter);
+    if (options?.avoid) {
+      const dx = canvas.x - options.avoid.x;
+      const dy = canvas.y - options.avoid.y;
+      if (Math.hypot(dx, dy) < minDistance) return null;
+    }
+    const canvasRect: CoverRect = {
+      x: canvas.x + (size.width - hitW) / 2,
+      y: canvas.y + (size.height - hitH) / 2,
+      width: hitW,
+      height: hitH,
+    };
+    if (
+      occupied.some((rect) =>
+        rectsOverlap(
+          canvasRect,
+          {
+            x: rect.x + rect.width * 0.11,
+            y: rect.y + rect.height * 0.11,
+            width: rect.width * 0.78,
+            height: rect.height * 0.78,
+          },
+          padding
+        )
+      )
+    ) {
+      return null;
+    }
+    return canvas;
+  };
+
+  for (const padding of [18, 10, 4]) {
+    for (let i = 0; i < 160; i += 1) {
+      const sx = minX + Math.random() * Math.max(1, maxX - minX);
+      const sy = minY + Math.random() * Math.max(1, maxY - minY);
+      const found = tryScreen(sx, sy, padding);
+      if (found) return found;
+    }
+
+    const stepX = Math.max(48, size.width * 0.42);
+    const stepY = Math.max(56, size.height * 0.38);
+    const slots: { x: number; y: number }[] = [];
+    for (let y = minY; y <= maxY; y += stepY) {
+      for (let x = minX; x <= maxX; x += stepX) {
+        slots.push({
+          x: x + (Math.random() - 0.5) * stepX * 0.45,
+          y: y + (Math.random() - 0.5) * stepY * 0.45,
+        });
+      }
+    }
+    shuffleInPlace(slots);
+    for (const slot of slots) {
+      const found = tryScreen(
+        Math.min(maxX, Math.max(minX, slot.x)),
+        Math.min(maxY, Math.max(minY, slot.y)),
+        padding
+      );
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
 
 export function getConvergenceDelta(
   element: CoverElement,
@@ -483,8 +661,8 @@ export function getConvergenceDelta(
   const dy = buttonY - slotCenterY;
   const dist = Math.hypot(dx, dy) || 1;
   const amplitude = Math.min(
-    48,
-    Math.max(28, Math.hypot(element.motion.driftX, element.motion.driftY) * 2.2)
+    120,
+    Math.max(64, Math.hypot(element.motion.driftX, element.motion.driftY) * 4.2)
   );
 
   return {

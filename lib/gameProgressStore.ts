@@ -152,9 +152,14 @@ function persist(next: GameProgress) {
 function hydrate() {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
-  snapshot = withClampedStars(
+  const stored = withClampedStars(
     parseProgress(window.localStorage.getItem(STORAGE_KEY))
   );
+  snapshot = {
+    ...stored,
+    stars: 0,
+    completedFigureIds: [],
+  };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
 }
 

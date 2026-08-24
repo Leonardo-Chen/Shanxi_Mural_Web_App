@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import type { CoverElement } from "@/data/coverElements";
-import { getConvergenceDelta, getCoverWidth } from "@/data/coverElements";
+import {
+  getConvergenceDelta,
+  getCoverWidth,
+  pickCoverCanvasPoint,
+} from "@/data/coverElements";
 
 export type ElementPose = {
   x: number;
@@ -37,7 +41,7 @@ export function useCoverTransition({
   getViewport,
   getCanvasCenter,
 }: UseCoverTransitionOptions) {
-  const driftTweensRef = useRef<gsap.core.Tween[]>([]);
+  const driftTweensRef = useRef<gsap.core.Animation[]>([]);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const getTargetsRef = useRef(getTargets);
   getTargetsRef.current = getTargets;
@@ -49,6 +53,7 @@ export function useCoverTransition({
     driftTweensRef.current = [];
     getTargetsRef.current().forEach(({ el }) => {
       const driftNode = getDriftNode(el);
+      gsap.killTweensOf(el);
       gsap.killTweensOf(driftNode);
       gsap.set(driftNode, { x: 0, y: 0, rotation: 0 });
     });
@@ -56,7 +61,18 @@ export function useCoverTransition({
 
   const placeAtCover = useCallback(() => {
     const targets = getTargets();
-    targets.forEach(({ id, el }) => {
+    const viewport = getViewport();
+    const canvasCenter = getCanvasCenter();
+    const occupied: { x: number; y: number; width: number; height: number }[] = [];
+    const order = [...targets];
+    for (let i = order.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const current = order[i];
+      order[i] = order[j] as (typeof order)[number];
+      order[j] = current as (typeof order)[number];
+    }
+
+    order.forEach(({ id, el }) => {
       const element = getElement(id);
       if (element?.showOnCover === false) {
         const canvasPose = getCanvasPose(id);
@@ -73,10 +89,21 @@ export function useCoverTransition({
       }
 
       const pose = getCoverPose(id);
-      if (!pose) return;
+      if (!pose || !element) return;
+      const width = getCoverWidth(element, viewport.width);
+      const height = width / element.coverPosition.aspectRatio;
+      const randomPoint = pickCoverCanvasPoint(
+        { width, height },
+        occupied,
+        viewport,
+        canvasCenter
+      );
+      const x = randomPoint?.x ?? pose.x;
+      const y = randomPoint?.y ?? pose.y;
+      occupied.push({ x, y, width, height });
       gsap.set(el, {
-        x: pose.x,
-        y: pose.y,
+        x,
+        y,
         scale: pose.scale,
         rotation: pose.rotation,
         opacity: 1,
@@ -84,7 +111,7 @@ export function useCoverTransition({
       });
     });
     return targets.length;
-  }, [getCanvasPose, getCoverPose, getElement, getTargets]);
+  }, [getCanvasCenter, getCanvasPose, getCoverPose, getElement, getTargets, getViewport]);
 
   const placeAtCanvas = useCallback(() => {
     getTargets().forEach(({ id, el }) => {
@@ -109,7 +136,44 @@ export function useCoverTransition({
     driftTweensRef.current = [];
     if (reducedMotion) return targets.length;
 
-    targets.forEach(({ id, el }) => {
+    const relocate = (id: string, el: HTMLElement, element: CoverElement) => {
+      const liveTargets = getTargetsRef.current();
+      const viewport = getViewport();
+      const width = getCoverWidth(element, viewport.width);
+      const height = width / element.coverPosition.aspectRatio;
+      const occupied = liveTargets.flatMap((target) => {
+        if (target.id === id) return [];
+        const other = getElement(target.id);
+        if (!other || other.showOnCover === false) return [];
+        const opacity = Number(gsap.getProperty(target.el, "opacity"));
+        if (opacity < 0.12) return [];
+        const otherWidth = getCoverWidth(other, viewport.width);
+        return [
+          {
+            x: Number(gsap.getProperty(target.el, "x")),
+            y: Number(gsap.getProperty(target.el, "y")),
+            width: otherWidth,
+            height: otherWidth / other.coverPosition.aspectRatio,
+          },
+        ];
+      });
+      const next = pickCoverCanvasPoint(
+        { width, height },
+        occupied,
+        viewport,
+        getCanvasCenter(),
+        {
+          avoid: {
+            x: Number(gsap.getProperty(el, "x")),
+            y: Number(gsap.getProperty(el, "y")),
+          },
+        }
+      );
+      if (!next) return;
+      gsap.set(el, { x: next.x, y: next.y });
+    };
+
+    targets.forEach(({ id, el }, index) => {
       const pose = getCoverPose(id);
       const element = getElement(id);
       if (!pose || !element || element.showOnCover === false) return;
@@ -124,19 +188,40 @@ export function useCoverTransition({
         getCanvasCenter()
       );
       const driftNode = getDriftNode(el);
+      const fadeOut = 2.2 + (index % 4) * 0.35;
+      const fadeIn = 1.15;
+      const visibleHold = 2.4 + (index % 3) * 0.7;
 
-      const tween = gsap.to(driftNode, {
-        x: delta.x,
-        y: delta.y,
-        rotation: 1.6,
-        duration: Math.max(6.5, element.motion.duration * 0.42),
+      const drift = gsap.to(driftNode, {
+        x: delta.x * 2.1,
+        y: delta.y * 2.1,
+        rotation: 4.5,
+        duration: Math.max(3.6, element.motion.duration * 0.24),
         delay: element.motion.delay,
         ease: "sine.inOut",
         yoyo: true,
         repeat: -1,
         overwrite: "auto",
       });
-      driftTweensRef.current.push(tween);
+      driftTweensRef.current.push(drift);
+
+      const cycle = gsap.timeline({
+        delay: element.motion.delay + index * 0.55,
+        repeat: -1,
+      });
+      cycle.to(el, {
+        opacity: 0,
+        duration: fadeOut,
+        ease: "sine.in",
+      });
+      cycle.add(() => relocate(id, el, element));
+      cycle.to(el, {
+        opacity: 1,
+        duration: fadeIn,
+        ease: "sine.out",
+      });
+      cycle.to({}, { duration: visibleHold });
+      driftTweensRef.current.push(cycle);
     });
 
     return driftTweensRef.current.length;
@@ -229,6 +314,7 @@ export function useCoverTransition({
             y: pose.y,
             scale: pose.scale,
             rotation: pose.rotation,
+            opacity: 1,
             duration: 0.82,
             ease: "power3.inOut",
           },

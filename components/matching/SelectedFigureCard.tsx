@@ -10,14 +10,12 @@ interface SelectedFigureCardProps {
   figure: Figure;
   sourceRect: DOMRect | null;
   reducedMotion: boolean;
-  onClose: () => void;
 }
 
 export default function SelectedFigureCard({
   figure,
   sourceRect,
   reducedMotion,
-  onClose,
 }: SelectedFigureCardProps) {
   const { locale, t } = useLocale();
   const copy = locFigure(locale, figure);
@@ -30,38 +28,66 @@ export default function SelectedFigureCard({
 
     if (reducedMotion || !sourceRect) {
       gsap.set(card, { opacity: 1, clearProps: "transform" });
-      gsap.set(bodyRef.current, { opacity: 1 });
+      gsap.set(bodyRef.current, { opacity: 1, y: 0 });
       return;
     }
 
     const target = card.getBoundingClientRect();
-    const scaleX = sourceRect.width / Math.max(target.width, 1);
-    const scaleY = sourceRect.height / Math.max(target.height, 1);
+    const dx =
+      sourceRect.left +
+      sourceRect.width / 2 -
+      (target.left + target.width / 2);
+    const dy =
+      sourceRect.top +
+      sourceRect.height / 2 -
+      (target.top + target.height / 2);
+    const scale = Math.min(
+      1.08,
+      Math.max(
+        0.58,
+        Math.min(
+          sourceRect.width / Math.max(target.width, 1),
+          sourceRect.height / Math.max(target.height, 1)
+        )
+      )
+    );
+    const lift = Math.min(28, Math.abs(dx) * 0.035);
+    const ease = gsap.parseEase("expo.out");
+    const proxy = { t: 0 };
+
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        card,
-        {
-          x: sourceRect.left - target.left,
-          y: sourceRect.top - target.top,
-          scaleX,
-          scaleY,
-          transformOrigin: "0 0",
-          opacity: 1,
+      gsap.set(card, {
+        x: dx,
+        y: dy,
+        scale,
+        transformOrigin: "50% 50%",
+        force3D: true,
+      });
+      gsap.set(bodyRef.current, { opacity: 0, y: 14 });
+
+      const tl = gsap.timeline();
+      tl.to(proxy, {
+        t: 1,
+        duration: 1.12,
+        ease: "none",
+        onUpdate: () => {
+          const t = proxy.t;
+          const e = ease(t);
+          gsap.set(card, {
+            x: dx * (1 - e),
+            y: dy * (1 - e) - Math.sin(Math.PI * t) * lift,
+            scale: scale + (1 - scale) * e,
+            force3D: true,
+          });
         },
-        {
-          x: 0,
-          y: 0,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 0.78,
-          ease: "power3.inOut",
-          clearProps: "transform",
-        }
-      );
-      gsap.fromTo(
+        onComplete: () => {
+          gsap.set(card, { x: 0, y: 0, scale: 1, clearProps: "transform" });
+        },
+      });
+      tl.to(
         bodyRef.current,
-        { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.35, delay: 0.5, ease: "power2.out" }
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        0.48
       );
     }, card);
 
@@ -69,12 +95,13 @@ export default function SelectedFigureCard({
   }, [figure.id, reducedMotion, sourceRect]);
 
   return (
+    <div className="pointer-events-none fixed inset-y-0 left-4 right-4 z-[82] flex items-center md:left-6 md:right-auto">
     <aside
       ref={cardRef}
-      className="fixed left-4 right-4 top-[4.5rem] z-40 flex max-h-[26svh] border border-[var(--color-border)] bg-rice shadow-figure md:bottom-auto md:left-10 md:right-auto md:top-28 md:block md:max-h-none md:w-[288px]"
+      className="pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-2xl border border-ink/12 bg-rice shadow-[0_16px_40px_rgb(33_51_56_/_14%)] md:h-[min(32rem,calc(100svh-6rem))] md:w-[280px]"
       aria-label={t("match.figureAria", { name: copy.displayName })}
     >
-      <div className="flex h-24 w-[38%] shrink-0 items-center justify-center bg-parchment/70 p-4 md:h-60 md:w-full md:p-4">
+      <div className="flex h-24 w-full min-h-0 items-center justify-center bg-parchment/70 p-4 md:h-auto md:flex-1">
         {figure.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -91,34 +118,23 @@ export default function SelectedFigureCard({
         )}
       </div>
 
-      <div ref={bodyRef} className="min-w-0 flex-1 overflow-y-auto px-4 py-3 md:p-6">
+      <div ref={bodyRef} className="min-w-0 shrink-0 px-4 py-3 md:p-5">
         <p className="type-meta text-cinnabar">
           {t("detail.selectedFigure")}
         </p>
-        <h2 className="type-card mt-2">
+        <h2 className="type-card mt-1.5">
           {copy.displayName}
         </h2>
         {copy.category && (
-          <p className="type-meta mt-2 text-gold">
+          <p className="type-meta mt-1.5 text-gold">
             {copy.category}
           </p>
         )}
-        <p className="type-body mt-3 line-clamp-4 text-ink/80 md:line-clamp-none">
+        <p className="type-body mt-2 line-clamp-3 text-ink/80">
           {copy.shortDescription}
         </p>
       </div>
-
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onClose();
-        }}
-        aria-label={t("match.backHome")}
-        className="btn-icon absolute bottom-1 right-1 z-10 border-0 bg-transparent text-ink/60 hover:text-cinnabar"
-      >
-        ×
-      </button>
     </aside>
+    </div>
   );
 }

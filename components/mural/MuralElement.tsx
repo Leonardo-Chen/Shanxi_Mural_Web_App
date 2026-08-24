@@ -13,7 +13,9 @@ interface MuralElementProps {
   selected: boolean;
   focusing?: boolean;
   reducedMotion: boolean;
-  onSelect: (id: string) => void;
+  isRepeat?: boolean;
+  lockedPose?: { x: number; y: number; scale: number; rotation: number } | null;
+  onSelect: (id: string, node: HTMLDivElement) => void;
   onOutlineComplete: (id: string) => void;
 }
 
@@ -27,6 +29,8 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
       selected,
       focusing = false,
       reducedMotion,
+      isRepeat = false,
+      lockedPose = null,
       onSelect,
       onOutlineComplete,
     },
@@ -38,23 +42,23 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
     const tone = PLACEHOLDER_TONES[element.tone % PLACEHOLDER_TONES.length];
 
     const handleClick = useCallback(
-      (event: React.MouseEvent) => {
+      (event: React.MouseEvent<HTMLDivElement>) => {
         if (!interactive) return;
         event.stopPropagation();
-        onSelect(element.id);
+        onSelect(element.id, event.currentTarget);
       },
       [element.id, interactive, onSelect]
     );
 
     const handleKeyDown = useCallback(
-      (event: React.KeyboardEvent) => {
-        if (!interactive) return;
+      (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (!interactive || isRepeat) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onSelect(element.id);
+          onSelect(element.id, event.currentTarget);
         }
       },
-      [element.id, interactive, onSelect]
+      [element.id, interactive, isRepeat, onSelect]
     );
 
     const imageNearCenter = useMemo(() => {
@@ -70,13 +74,16 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
         data-mural-element={element.id}
         data-slot-state={slotState}
         data-selected={selected ? "true" : "false"}
-        role={interactive ? "button" : undefined}
-        tabIndex={interactive ? 0 : -1}
-        aria-label={interactive ? element.alt : undefined}
-        aria-hidden={interactive ? undefined : true}
+        data-repeat={isRepeat ? "true" : undefined}
+        role={interactive && !isRepeat ? "button" : undefined}
+        tabIndex={interactive && !isRepeat ? 0 : -1}
+        aria-label={interactive && !isRepeat ? element.alt : undefined}
+        aria-hidden={interactive && !isRepeat ? undefined : true}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        className="mural-slot absolute left-0 top-0 select-none"
+        className={`mural-slot absolute left-0 top-0 select-none${
+          isRepeat ? " mural-slot-repeat" : ""
+        }`}
         style={{
           width,
           height,
@@ -85,6 +92,12 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
             : element.canvasPosition.zIndex ?? element.coverPosition.zIndex,
           pointerEvents: interactive ? "auto" : "none",
           cursor: interactive ? "pointer" : "default",
+          ...(lockedPose
+            ? {
+                transform: `translate3d(${lockedPose.x}px, ${lockedPose.y}px, 0) scale(${lockedPose.scale}) rotate(${lockedPose.rotation}deg)`,
+                transformOrigin: "0 0",
+              }
+            : null),
         }}
       >
         <div className="mural-slot-visual relative h-full w-full" data-mural-drift>
@@ -100,12 +113,12 @@ const MuralElement = forwardRef<HTMLDivElement, MuralElementProps>(
               src={element.src}
               alt={element.alt}
               draggable={false}
-              loading={phase === "cover" || imageNearCenter ? "eager" : "lazy"}
+              loading={phase === "cover" || (!isRepeat && imageNearCenter) ? "eager" : "lazy"}
               className="h-full w-full select-none object-contain"
             />
           )}
 
-          {phase === "explore" && (
+          {phase === "explore" && !isRepeat && (
             <OutlineAnimation
               active={selected}
               width={width}

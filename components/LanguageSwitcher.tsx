@@ -41,68 +41,52 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div ref={rootRef} className="nav-chip gap-1 px-2">
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-haspopup="listbox"
+        aria-label={`${t("language.label")}：${LOCALE_NAMES[locale]}`}
+        onClick={() => setOpen((value) => !value)}
+        className="nav-chip type-ui gap-2 px-2"
+      >
+        <span className="flex h-11 w-8 items-center justify-center text-ink/70" aria-hidden="true">
+          <TranslateIcon />
+        </span>
+        {LOCALE_SHORT[locale]}
+        <Chevron up={open} />
+      </button>
+
       {open ? (
-        <>
-          <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center text-ink/70"
-            aria-hidden="true"
-          >
-            <TranslateIcon />
-          </span>
-          <div
-            id={listId}
-            role="listbox"
-            aria-label={t("language.label")}
-            className="flex items-center gap-1"
-          >
-            {LOCALES.map((code: Locale) => {
-              const active = locale === code;
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  aria-label={LOCALE_NAMES[code]}
-                  onClick={() => choose(code)}
-                  className={`type-ui min-h-11 min-w-11 px-2 ${
-                    active ? "text-ink" : "text-ink/45 hover:text-cinnabar"
-                  }`}
-                >
-                  {LOCALE_SHORT[code]}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              aria-expanded="true"
-              aria-controls={listId}
-              aria-label={t("nav.close")}
-              onClick={() => setOpen(false)}
-              className="btn-icon border-0 bg-transparent"
-            >
-              <Chevron up />
-            </button>
-          </div>
-        </>
-      ) : (
-        <button
-          type="button"
-          aria-expanded="false"
-          aria-controls={listId}
-          aria-haspopup="listbox"
-          aria-label={`${t("language.label")}：${LOCALE_NAMES[locale]}`}
-          onClick={() => setOpen(true)}
-          className="type-ui flex min-h-11 items-center gap-2 px-1 text-ink"
+        <div
+          id={listId}
+          role="listbox"
+          aria-label={t("language.label")}
+          className="absolute right-0 top-[calc(100%+6px)] z-[90] flex min-w-full flex-col overflow-hidden rounded-2xl border border-ink/15 bg-rice/95 py-1 shadow-[0_12px_28px_rgb(33_51_56_/_14%)] backdrop-blur-md"
         >
-          <span className="flex h-11 w-8 items-center justify-center text-ink/70">
-            <TranslateIcon />
-          </span>
-          {LOCALE_SHORT[locale]}
-          <Chevron />
-        </button>
-      )}
+          {LOCALES.map((code: Locale) => {
+            const active = locale === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                role="option"
+                aria-selected={active}
+                aria-label={LOCALE_NAMES[code]}
+                onClick={() => choose(code)}
+                className={`type-ui px-4 py-2.5 text-left transition-colors duration-200 ${
+                  active
+                    ? "bg-parchment text-ink"
+                    : "text-ink/55 hover:bg-parchment hover:text-cinnabar"
+                }`}
+              >
+                {LOCALE_NAMES[code]}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -136,7 +120,7 @@ function Chevron({ up = false }: { up?: boolean }) {
       viewBox="0 0 8 8"
       fill="none"
       aria-hidden="true"
-      className={up ? "rotate-180" : ""}
+      className={`transition-transform duration-300 ${up ? "rotate-180" : ""}`}
     >
       <path
         d="M1.5 3L4 5.5L6.5 3"

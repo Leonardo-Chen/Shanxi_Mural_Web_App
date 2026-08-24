@@ -26,7 +26,7 @@ export default function NavMark({ onClick, href = "/" }: NavMarkProps) {
       <button
         type="button"
         onClick={onClick}
-        className="block min-h-11 min-w-11"
+        className="block min-h-11 min-w-11 transition-transform duration-300 ease-out hover:scale-110"
         aria-label={t("brand.backToCover")}
       >
         {mark}
@@ -37,7 +37,7 @@ export default function NavMark({ onClick, href = "/" }: NavMarkProps) {
   return (
     <Link
       href={href}
-      className="block min-h-11 min-w-11 transition-opacity hover:opacity-85"
+      className="block min-h-11 min-w-11 transition-transform duration-300 ease-out hover:scale-110"
       aria-label={t("brand.backToHome")}
     >
       {mark}

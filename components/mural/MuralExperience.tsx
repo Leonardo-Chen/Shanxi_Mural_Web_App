@@ -6,10 +6,12 @@ import CoverIntro from "./CoverIntro";
 import CoverElementField from "./CoverElementField";
 import ConvergencePaths from "./ConvergencePaths";
 import ElementSelection from "./ElementSelection";
-import DragIndicator from "@/components/DragIndicator";
+import CanvasInstruction from "./CanvasInstruction";
+import CanvasViewControls, { CANVAS_ZOOM_STEP } from "./CanvasViewControls";
 import {
   coverPositionToCanvas,
   getCanvasPoint,
+  getCanvasTilePeriod,
   getCanvasWidth,
   getCoverWidth,
   getViewportTier,
@@ -23,6 +25,7 @@ import { useDraggableCanvas } from "@/hooks/useDraggableCanvas";
 import { useCoverTransition } from "@/hooks/useCoverTransition";
 import { useElementSelection } from "@/hooks/useElementSelection";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { ElementPose } from "@/hooks/useCoverTransition";
 
 export type ExperienceMode = "cover" | "home";
@@ -33,6 +36,7 @@ interface MuralExperienceProps {
   coverGeneration?: number;
   onCoverComplete: () => void;
   onContinueFigure: (element: CoverElement, sourceRect: DOMRect) => void;
+  onBackToCover?: () => void;
   detailOpen: boolean;
 }
 
@@ -42,15 +46,18 @@ export default function MuralExperience({
   coverGeneration = 0,
   onCoverComplete,
   onContinueFigure,
+  onBackToCover,
   detailOpen,
 }: MuralExperienceProps) {
   const reducedMotion = useReducedMotion();
+  const { t } = useLocale();
   const [transitioning, setTransitioning] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [placed, setPlaced] = useState(false);
   const [layoutWidth, setLayoutWidth] = useState(1280);
   const [layoutHeight, setLayoutHeight] = useState(800);
   const [focusingId, setFocusingId] = useState<string | null>(null);
+  const [hintVisible, setHintVisible] = useState(false);
   const [sessionElements, setSessionElements] = useState<CoverElement[] | null>(
     null
   );
@@ -118,10 +125,19 @@ export default function MuralExperience({
         height: width / element.coverPosition.aspectRatio,
       };
     });
-    return computeContentZoomRange(rects, {
+    const range = computeContentZoomRange(rects, {
       width: layoutWidth,
       height: layoutHeight,
     });
+    const tile = getCanvasTilePeriod(layoutWidth, canvasSize);
+    const coverZoom = Math.max(
+      layoutWidth / (tile.x * 2.6),
+      layoutHeight / (tile.y * 2.6)
+    );
+    return {
+      minZoom: Math.max(range.minZoom, coverZoom),
+      maxZoom: range.maxZoom,
+    };
   }, [
     canvasConfig.height,
     canvasConfig.width,
@@ -129,6 +145,27 @@ export default function MuralExperience({
     layoutWidth,
     visibleElements,
   ]);
+
+  const tilePeriod = useMemo(
+    () =>
+      getCanvasTilePeriod(layoutWidth, {
+        width: canvasConfig.width,
+        height: canvasConfig.height,
+      }),
+    [canvasConfig.height, canvasConfig.width, layoutWidth]
+  );
+
+  const wrapPeriod = useMemo(
+    () =>
+      mode === "home"
+        ? {
+            x: tilePeriod.x,
+            y: tilePeriod.y,
+            center: canvasConfig.center,
+          }
+        : null,
+    [canvasConfig.center, mode, tilePeriod.x, tilePeriod.y]
+  );
 
   const {
     position,
@@ -141,6 +178,9 @@ export default function MuralExperience({
     navigateTo,
     cancelPan,
     resetView,
+    setZoomLevel,
+    minZoom,
+    maxZoom,
   } = useDraggableCanvas({
     canvasWidth: canvasConfig.width,
     canvasHeight: canvasConfig.height,
@@ -154,6 +194,7 @@ export default function MuralExperience({
     allowDragFromInteractive: true,
     minZoom: zoomRange.minZoom,
     maxZoom: zoomRange.maxZoom,
+    wrapPeriod,
   });
 
   const elementById = useMemo(() => {
@@ -338,7 +379,7 @@ export default function MuralExperience({
   }, [mode, onCoverComplete, playToCanvas, transitioning]);
 
   const handleSelect = useCallback(
-    (id: string) => {
+    (id: string, node: HTMLDivElement) => {
       if (mode !== "home" || didPanRef.current) return;
       if (openingIdRef.current) return;
       if (focusingIdRef.current === id || selection.selectedId === id) return;
@@ -346,13 +387,6 @@ export default function MuralExperience({
       cancelPendingOpen();
       focusingIdRef.current = id;
       setFocusingId(id);
-
-      const node = nodeMapRef.current.get(id);
-      if (!node) {
-        focusingIdRef.current = null;
-        setFocusingId(null);
-        return;
-      }
 
       const rect = node.getBoundingClientRect();
       const scale = zoom || 1;
@@ -410,6 +444,96 @@ export default function MuralExperience({
     },
     [openFigure, reducedMotion, selection.selectedId]
   );
+
+  const handleCancelSelection = useCallback(() => {
+    cancelPendingOpen();
+    selection.clear();
+  }, [cancelPendingOpen, selection]);
+
+  const handleBack = useCallback(() => {
+    if (focusingIdRef.current || selection.selectedId) {
+      handleCancelSelection();
+      return;
+    }
+    onBackToCover?.();
+  }, [handleCancelSelection, onBackToCover, selection.selectedId]);
+
+  const zoomByStep = useCallback(
+    (direction: 1 | -1) => {
+      const factor = direction > 0 ? CANVAS_ZOOM_STEP : 1 / CANVAS_ZOOM_STEP;
+      setZoomLevel(zoom * factor);
+    },
+    [setZoomLevel, zoom]
+  );
+
+  const handleResetView = useCallback(() => {
+    handleCancelSelection();
+    resetView(1);
+  }, [handleCancelSelection, resetView]);
+
+  const dismissHint = useCallback(() => {
+    setHintVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (hidden || mode !== "home" || transitioning || detailOpen) {
+      setHintVisible(false);
+      return;
+    }
+    setHintVisible(true);
+    const timer = window.setTimeout(() => setHintVisible(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [coverGeneration, detailOpen, hidden, mode, transitioning]);
+
+  useEffect(() => {
+    if (hidden || mode !== "home" || detailOpen || transitioning) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLElement) {
+        const tag = event.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || event.target.isContentEditable) {
+          return;
+        }
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (hintVisible) {
+          dismissHint();
+          return;
+        }
+        handleBack();
+        return;
+      }
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        zoomByStep(1);
+        return;
+      }
+      if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        zoomByStep(-1);
+        return;
+      }
+      if (event.key === "0") {
+        event.preventDefault();
+        handleResetView();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [
+    detailOpen,
+    dismissHint,
+    handleBack,
+    handleResetView,
+    hidden,
+    hintVisible,
+    mode,
+    transitioning,
+    zoomByStep,
+  ]);
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -480,7 +604,7 @@ export default function MuralExperience({
       className={`cover-root fixed inset-0 z-10 overflow-hidden ${
         hidden ? "hidden" : ""
       }`}
-      data-canvas-mode={mode === "home" ? "explore" : "cover"}
+      data-canvas-mode={mode === "home" || transitioning ? "explore" : "cover"}
       aria-hidden={hidden}
     >
       {(mode === "cover" || transitioning) && (
@@ -523,6 +647,11 @@ export default function MuralExperience({
             key={coverGeneration}
             elements={visibleElements}
             viewportWidth={viewportSize.width || layoutWidth}
+            canvasSize={{
+              width: canvasConfig.width,
+              height: canvasConfig.height,
+            }}
+            tilePeriod={mode === "home" ? tilePeriod : null}
             phase={mode === "home" ? "explore" : "cover"}
             interactive={mode === "home" && !detailOpen}
             selectedId={selection.selectedId}
@@ -545,9 +674,32 @@ export default function MuralExperience({
         />
       )}
 
-      <DragIndicator
-        visible={mode === "home" && !detailOpen && !transitioning}
-      />
+      {mode === "home" && !detailOpen && !transitioning ? (
+        <>
+          {mode === "home" && !detailOpen && !transitioning ? (
+            <CanvasInstruction
+              messageKey="home.instruction"
+              floating
+              visible={hintVisible}
+              onClose={dismissHint}
+            />
+          ) : null}
+          <CanvasViewControls
+            onBack={handleBack}
+            backPlacement="top-left"
+            backLabel={
+              focusingId || selectedElement
+                ? t("home.cancelSelect")
+                : t("home.backCover")
+            }
+            onZoomIn={() => zoomByStep(1)}
+            onZoomOut={() => zoomByStep(-1)}
+            onReset={handleResetView}
+            canZoomIn={zoom < maxZoom - 0.001}
+            canZoomOut={zoom > minZoom + 0.001}
+          />
+        </>
+      ) : null}
 
       <ElementSelection element={selectedElement} />
     </div>
