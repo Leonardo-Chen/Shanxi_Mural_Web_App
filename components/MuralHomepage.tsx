@@ -84,7 +84,7 @@ export default function MuralHomepage() {
   const parallaxRafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [exploreSession, setExploreSession] = useState(0);
-  const [exploreHintVisible, setExploreHintVisible] = useState(true);
+  const [exploreHintVisible, setExploreHintVisible] = useState(false);
   const [coverGeneration, setCoverGeneration] = useState(0);
   const { progress, redeemPostcard, resetFigureAwards } = useGameProgress();
   const [postcardAssets, setPostcardAssets] = useState<PostcardAsset[]>(
@@ -202,7 +202,6 @@ export default function MuralHomepage() {
       setDetailContent(null);
       setSelectedCardId(null);
       setIntroVisible(true);
-      setExploreHintVisible(true);
       setExploreSession((n) => n + 1);
       setPhase("explore");
     },
@@ -340,6 +339,20 @@ export default function MuralHomepage() {
     exploreSession,
     templeExplore,
   ]);
+
+  useEffect(() => {
+    if (phase !== "explore") {
+      setExploreHintVisible(false);
+      return;
+    }
+    setExploreHintVisible(true);
+    const timer = window.setTimeout(() => setExploreHintVisible(false), 3200);
+    return () => window.clearTimeout(timer);
+  }, [phase, exploreSession]);
+
+  useEffect(() => {
+    if (detailContent || isDragging) setExploreHintVisible(false);
+  }, [detailContent, isDragging]);
 
   useEffect(() => {
     if (phase !== "explore") return;
