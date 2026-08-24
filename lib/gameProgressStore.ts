@@ -5,6 +5,7 @@ export type CollectedPostcard = {
   src: string;
   title: string;
   collectedAt: string;
+  orientation?: "landscape" | "portrait";
 };
 
 export type CollectedSticker = {
@@ -61,6 +62,10 @@ function parseCollectedPostcards(items: unknown): CollectedPostcard[] {
       return [];
     }
     const record = item as Partial<CollectedPostcard>;
+    const orientation =
+      record.orientation === "portrait" || record.orientation === "landscape"
+        ? record.orientation
+        : undefined;
     return [
       {
         id: record.id as string,
@@ -70,6 +75,7 @@ function parseCollectedPostcards(items: unknown): CollectedPostcard[] {
           typeof record.collectedAt === "string"
             ? record.collectedAt
             : new Date(0).toISOString(),
+        orientation,
       },
     ];
   });
@@ -268,6 +274,16 @@ export function useGameProgress() {
     return true;
   }, []);
 
+  const resetFigureAwards = useCallback(() => {
+    const current = getGameProgress();
+    if (current.completedFigureIds.length === 0) return;
+    persist({
+      ...current,
+      completedFigureIds: [],
+      updatedAt: new Date().toISOString(),
+    });
+  }, []);
+
   const clearPostcards = useCallback(() => {
     const current = getGameProgress();
     persist({
@@ -297,6 +313,7 @@ export function useGameProgress() {
     progress,
     hydrated,
     awardFigure,
+    resetFigureAwards,
     redeemPostcard,
     addCollectedPostcard: addCollectedPostcardToProgress,
     collectSticker,

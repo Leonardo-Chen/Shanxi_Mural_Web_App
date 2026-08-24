@@ -25,20 +25,25 @@ export default function PostcardReward({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/40 px-5">
+    <div className="fixed inset-0 z-[90] overflow-y-auto bg-ink/40 px-5 py-8">
+      <div className="flex min-h-full items-center justify-center">
       <div
         ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-label={t("postcard.congratsAria")}
         tabIndex={-1}
-        className="relative w-full max-w-lg border border-stone/25 bg-rice px-6 py-7 text-center shadow-[0_20px_55px_rgba(38,36,31,0.22)] focus:outline-none"
+        className={`surface-card relative my-auto w-[calc(100vw-32px)] max-h-[calc(100svh-4rem)] overflow-y-auto rounded px-6 py-6 text-center shadow-overlay md:px-8 md:py-7 ${
+          postcard.orientation === "portrait"
+            ? "max-w-[360px]"
+            : "max-w-[min(92vw,520px)]"
+        }`}
       >
-        <p className="font-sans text-[10px] tracking-[0.24em] text-cinnabar/80">
+        <p className="type-meta text-gold">
           {t("postcard.rewardEyebrow")}
         </p>
-        <h2 className="mt-2 font-serif text-3xl text-stone">{t("postcard.congrats")}</h2>
-        <p className="mt-2 font-serif text-sm text-ink/65">
+        <h2 className="type-page mt-2">{t("postcard.congrats")}</h2>
+        <p className="type-body mt-4 text-ink">
           {t("postcard.congratsBody")}
         </p>
 
@@ -47,10 +52,14 @@ export default function PostcardReward({
           <img
             src={postcard.src}
             alt={locCollectedTitle(locale, postcard.id, postcard.title)}
-            className="h-auto w-full object-contain"
+            className={`mx-auto w-auto max-w-full object-contain ${
+              postcard.orientation === "portrait"
+                ? "max-h-[min(48svh,360px)]"
+                : "max-h-[min(36svh,280px)]"
+            }`}
           />
         </div>
-        <p className="mt-3 font-serif text-base text-stone">
+        <p className="type-card mt-3">
           {locCollectedTitle(locale, postcard.id, postcard.title)}
         </p>
 
@@ -59,10 +68,11 @@ export default function PostcardReward({
         <button
           type="button"
           onClick={onCollect}
-          className="mt-6 min-h-11 w-full rounded-full bg-cinnabar px-6 py-3 text-rice transition-colors hover:bg-[#7a2e28] focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar focus-visible:ring-offset-2 focus-visible:ring-offset-rice"
+          className="btn-primary mt-6 w-full"
         >
           {alreadyCollected ? t("postcard.continue") : t("postcard.collect")}
         </button>
+      </div>
       </div>
     </div>
   );

@@ -36,35 +36,35 @@ export default function PostcardAlbum() {
     <div className="collection-root h-svh overflow-y-auto bg-parchment">
       <FixedNavigation />
 
-      <main className="mx-auto max-w-6xl px-5 pb-16 pt-24 md:px-8 md:pt-28">
-        <p className="font-sans text-[10px] tracking-[0.24em] text-cinnabar/80">
+      <main className="page-shell pb-16 pt-24 md:pt-28">
+        <p className="type-meta font-semibold tracking-[0.04em] text-cinnabar">
           {t("postcard.albumEyebrow")}
         </p>
-        <h1 className="mt-2 font-serif text-3xl text-ink md:text-4xl">
+        <h1 className="type-page mt-2">
           {t("postcard.albumTitle")}
         </h1>
-        <p className="mt-3 max-w-xl font-serif text-sm leading-relaxed text-ink/65">
+        <p className="type-body mt-4 max-w-[680px] text-ink/80">
           {t("postcard.albumLead")}
         </p>
 
-        <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-0">
+        <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-12">
           <section
-            className="md:pr-8 lg:pr-12"
+            className="md:pr-6 lg:pr-12"
             aria-labelledby="postcards-heading"
           >
-            <p className="font-sans text-[10px] tracking-[0.2em] text-stone/70">
+            <p className="type-meta text-gold">
               {t("postcard.section")}
             </p>
             <h2
               id="postcards-heading"
-              className="mt-1 font-serif text-2xl text-stone"
+              className="type-section mt-2"
             >
               {t("postcard.section")}
             </h2>
             {cards.length === 0 ? (
-              <div className="mt-5 border border-stone/20 bg-rice/70 px-6 py-8 text-center">
-                <p className="font-serif text-base text-stone">{t("postcard.empty")}</p>
-                <p className="mt-2 font-serif text-sm text-ink/60">
+              <div className="surface-card mt-6 px-8 py-8 text-center">
+                <p className="type-card">{t("postcard.empty")}</p>
+                <p className="type-body mt-2 text-ink/80">
                   {t("postcard.emptyHint")}
                 </p>
               </div>
@@ -75,15 +75,19 @@ export default function PostcardAlbum() {
                     <button
                       type="button"
                       onClick={() => setActive({ kind: "postcard", item: card })}
-                      className="w-full overflow-hidden border border-stone/20 bg-rice text-left shadow-sm transition-colors hover:border-stone/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
+                      className="group w-full overflow-hidden border border-[var(--color-border)] bg-rice text-left shadow-none transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-hover"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={card.src}
                         alt={locCollectedTitle(locale, card.id, card.title)}
-                        className="aspect-[3/2] w-full bg-parchment/80 object-contain"
+                        className={`w-full bg-parchment/80 object-contain ${
+                          card.orientation === "portrait"
+                            ? "mx-auto max-h-[320px] aspect-[3/4]"
+                            : "aspect-[3/2]"
+                        }`}
                       />
-                      <span className="block px-4 py-3 font-serif text-sm text-stone">
+                      <span className="type-card block px-4 py-3">
                         {locCollectedTitle(locale, card.id, card.title)}
                       </span>
                     </button>
@@ -94,22 +98,22 @@ export default function PostcardAlbum() {
           </section>
 
           <section
-            className="md:border-l md:border-stone/15 md:pl-8 lg:pl-12"
+            className="md:border-l md:border-[rgb(33_51_56_/_18%)] md:pl-6 lg:pl-12"
             aria-labelledby="stickers-heading"
           >
-            <p className="font-sans text-[10px] tracking-[0.2em] text-stone/70">
+            <p className="type-meta text-gold">
               {t("postcard.stickers")}
             </p>
             <h2
               id="stickers-heading"
-              className="mt-1 font-serif text-2xl text-stone"
+              className="type-section mt-2"
             >
               {t("postcard.stickers")}
             </h2>
             {stickers.length === 0 ? (
-              <div className="mt-5 border border-stone/20 bg-rice/70 px-6 py-8 text-center">
-                <p className="font-serif text-base text-stone">{t("postcard.stickersEmpty")}</p>
-                <p className="mt-2 font-serif text-sm text-ink/60">
+              <div className="surface-card mt-6 px-8 py-8 text-center">
+                <p className="type-card">{t("postcard.stickersEmpty")}</p>
+                <p className="type-body mt-2 text-ink/80">
                   {t("postcard.stickersHint")}
                 </p>
               </div>
@@ -122,9 +126,9 @@ export default function PostcardAlbum() {
                       onClick={() =>
                         setActive({ kind: "sticker", item: sticker })
                       }
-                      className="w-full overflow-hidden border border-stone/20 bg-rice text-left shadow-sm transition-colors hover:border-stone/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cinnabar"
+                      className="w-full overflow-hidden border border-[rgb(33_51_56_/_18%)] bg-rice text-left shadow-none transition-[box-shadow] duration-200 ease-out hover:shadow-hover"
                     >
-                      <span className="flex aspect-square items-center justify-center bg-parchment/80 p-3">
+                      <span className="flex aspect-square items-center justify-center bg-parchment/80 p-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={sticker.src}
@@ -132,7 +136,7 @@ export default function PostcardAlbum() {
                         className="max-h-full max-w-full object-contain"
                       />
                     </span>
-                    <span className="block px-3 py-2.5 font-serif text-sm text-stone">
+                    <span className="type-ui block px-3 py-2.5">
                       {locCollectedTitle(locale, sticker.id, sticker.title)}
                     </span>
                     </button>
@@ -147,14 +151,14 @@ export default function PostcardAlbum() {
           <div className="mt-10 text-center">
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center rounded-full bg-cinnabar px-6 py-3 font-serif text-sm text-rice hover:bg-[#7a2e28]"
+              className="btn-primary"
             >
               {t("postcard.backCover")}
             </Link>
           </div>
         )}
 
-        <div className="mt-16 flex flex-col items-center gap-3 border-t border-stone/15 pt-8 sm:flex-row sm:justify-center">
+        <div className="mt-16 flex flex-col items-center gap-3 border-t border-[rgb(33_51_56_/_18%)] pt-8 sm:flex-row sm:justify-center">
           <button
             type="button"
             disabled={cards.length === 0}
@@ -167,7 +171,7 @@ export default function PostcardAlbum() {
               }
               setConfirming("postcard");
             }}
-            className="min-h-11 min-w-[12rem] rounded-full border border-stone/25 px-6 py-2.5 font-serif text-sm text-stone transition-colors hover:border-cinnabar/50 hover:text-cinnabar disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone/25 disabled:hover:text-stone"
+            className="btn-danger min-w-[12rem]"
           >
             {confirming === "postcard" ? t("postcard.clearConfirm") : t("postcard.clear")}
           </button>
@@ -183,13 +187,13 @@ export default function PostcardAlbum() {
               }
               setConfirming("sticker");
             }}
-            className="min-h-11 min-w-[12rem] rounded-full border border-stone/25 px-6 py-2.5 font-serif text-sm text-stone transition-colors hover:border-cinnabar/50 hover:text-cinnabar disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone/25 disabled:hover:text-stone"
+            className="btn-danger min-w-[12rem]"
           >
             {confirming === "sticker" ? t("postcard.clearStickersConfirm") : t("postcard.clearStickers")}
           </button>
         </div>
         {confirming && (
-          <p className="mt-3 text-center font-serif text-xs text-ink/50">
+          <p className="type-caption mt-3 text-center text-ink/70">
             {t("postcard.clearHint")}
           </p>
         )}
@@ -197,62 +201,79 @@ export default function PostcardAlbum() {
 
       {active && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/40 px-5"
+          className="fixed inset-0 z-[90] overflow-y-auto bg-ink/40 px-5 py-8"
           role="presentation"
           onClick={() => setActive(null)}
         >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={active.item.title}
-            className="relative w-full max-w-lg border border-stone/25 bg-rice px-6 py-7 text-center shadow-[0_20px_55px_rgba(38,36,31,0.22)]"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="flex min-h-full items-center justify-center">
             <div
-              className={
-                active.kind === "sticker"
-                  ? "flex min-h-56 items-center justify-center border border-stone/15 bg-parchment/80 p-4"
-                  : ""
-              }
+              role="dialog"
+              aria-modal="true"
+              aria-label={active.item.title}
+              className={`surface-card relative my-auto w-[calc(100vw-32px)] max-h-[calc(100svh-4rem)] overflow-y-auto rounded px-6 py-6 text-center shadow-overlay md:px-8 md:py-7 ${
+                active.kind === "postcard" &&
+                active.item.orientation === "portrait"
+                  ? "max-w-[360px]"
+                  : "max-w-[min(92vw,520px)]"
+              }`}
+              onClick={(event) => event.stopPropagation()}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={active.item.src}
-                alt={active.item.title}
+              <button
+                type="button"
+                onClick={() => setActive(null)}
+                aria-label={t("nav.close")}
+                className="btn-icon absolute right-3 top-3 border-0 bg-transparent text-ink/60 hover:text-cinnabar"
+              >
+                ×
+              </button>
+              <div
                 className={
                   active.kind === "sticker"
-                    ? "max-h-[50vh] w-auto max-w-full object-contain"
-                    : "h-auto w-full border border-stone/15 object-contain"
+                    ? "mt-6 flex items-center justify-center border border-stone/15 bg-parchment/80 p-4"
+                    : "mt-6"
                 }
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={active.item.src}
+                  alt={active.item.title}
+                  className={
+                    active.kind === "sticker"
+                      ? "max-h-[min(36svh,240px)] w-auto max-w-full object-contain"
+                      : active.item.orientation === "portrait"
+                        ? "mx-auto max-h-[min(52svh,420px)] w-auto max-w-full border border-stone/15 object-contain"
+                        : "mx-auto max-h-[min(40svh,280px)] w-auto max-w-full border border-stone/15 object-contain"
+                  }
+                />
+              </div>
+              <p className="type-card mt-4">
+                {locCollectedTitle(locale, active.item.id, active.item.title)}
+              </p>
+              <p className="type-meta mt-2 text-gold">
+                {active.kind === "sticker"
+                  ? t("postcard.kindSticker")
+                  : t("postcard.kindPostcard")}
+              </p>
+              <PostcardShare
+                kind={active.kind}
+                postcard={{
+                  id: active.item.id,
+                  src: active.item.src,
+                  title: active.item.title,
+                  fileName:
+                    active.kind === "sticker"
+                      ? active.item.fileName
+                      : fileNameFromSrc(active.item.src, `${active.item.id}.png`),
+                }}
               />
+              <button
+                type="button"
+                onClick={() => setActive(null)}
+                className="btn-secondary mt-5"
+              >
+                {t("nav.close")}
+              </button>
             </div>
-            <p className="mt-4 font-serif text-lg text-stone">
-              {locCollectedTitle(locale, active.item.id, active.item.title)}
-            </p>
-            <p className="mt-1 font-sans text-[10px] tracking-[0.16em] text-stone/55">
-              {active.kind === "sticker"
-                ? t("postcard.kindSticker")
-                : t("postcard.kindPostcard")}
-            </p>
-            <PostcardShare
-              kind={active.kind}
-              postcard={{
-                id: active.item.id,
-                src: active.item.src,
-                title: active.item.title,
-                fileName:
-                  active.kind === "sticker"
-                    ? active.item.fileName
-                    : fileNameFromSrc(active.item.src, `${active.item.id}.svg`),
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => setActive(null)}
-              className="mt-5 min-h-11 rounded-full border border-stone/25 px-6 py-2.5 font-serif text-sm text-stone hover:border-stone/50"
-            >
-              {t("nav.close")}
-            </button>
           </div>
         </div>
       )}
